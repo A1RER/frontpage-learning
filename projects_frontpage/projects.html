@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>A1RER · TERMINAL</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&family=Noto+Sans+SC:wght@300;400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --phosphor: #33ff66;
+        --phosphor-dim: #1a7a33;
+        --phosphor-bright: #afffca;
+        --phosphor-glow: 0 0 8px #33ff66, 0 0 20px rgba(51, 255, 102, 0.4);
+        --amber: #ffb000;
+        --bg: #020a04;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      /* ── CRT SHELL ── */
+      .crt-shell {
+        position: relative;
+        width: min(920px, 96vw);
+        height: min(640px, 96vh);
+        background: var(--bg);
+        border-radius: 18px / 22px;
+        border: 3px solid #1a2e1e;
+        box-shadow:
+          inset 0 0 100px rgba(0, 0, 0, 0.95),
+          inset 0 0 30px rgba(51, 255, 102, 0.03),
+          0 0 80px rgba(0, 0, 0, 0.9),
+          0 8px 60px rgba(0, 0, 0, 0.95);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* curved vignette */
+      .crt-shell::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: radial-gradient(
+          ellipse at center,
+          transparent 50%,
+          rgba(0, 0, 0, 0.7) 100%
+        );
+        pointer-events: none;
+        z-index: 50;
+      }
+      /* glass glare */
+      .crt-shell::after {
+        content: "";
+        position: absolute;
+        top: -8%;
+        left: -4%;
+        width: 55%;
+        height: 50%;
+        background: radial-gradient(
+          ellipse,
+          rgba(255, 255, 255, 0.022) 0%,
+          transparent 70%
+        );
+        pointer-events: none;
+        z-index: 51;
+        border-radius: 50%;
+      }
+
+      /* ── SCANLINES ── */
+      .scanlines {
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 0, 0, 0.25) 3px
+        );
+        pointer-events: none;
+        z-index: 40;
+        border-radius: inherit;
+      }
+
+      /* ── MOVING SWEEP ── */
+      @keyframes sweep {
+        0% {
+          top: -8%;
+        }
+        100% {
+          top: 108%;
+        }
+      }
+      .sweep {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(
+          transparent,
+          rgba(51, 255, 102, 0.05),
+          transparent
+        );
+        animation: sweep 8s linear infinite;
+        pointer-events: none;
+        z-index: 41;
+      }
+
+      /* ── SCREEN FLICKER ── */
+      @keyframes flicker {
+        0%,
+        96%,
+        100% {
+          opacity: 1;
+        }
+        97% {
+          opacity: 0.88;
+        }
+        98% {
+          opacity: 0.96;
+        }
+        99% {
+          opacity: 0.84;
+        }
+      }
+
+      .screen-inner {
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        padding: 22px 30px 16px;
+        animation: flicker 10s infinite;
+        font-family: "Share Tech Mono", monospace;
+        color: var(--phosphor);
+        position: relative;
+        z-index: 10;
+      }
+
+      /* ── TOPBAR ── */
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        border-bottom: 1px solid var(--phosphor-dim);
+        padding-bottom: 10px;
+        margin-bottom: 14px;
+      }
+      .logo {
+        font-family: "VT323", monospace;
+        font-size: 32px;
+        color: var(--phosphor-bright);
+        text-shadow: var(--phosphor-glow);
+        letter-spacing: 0.1em;
+        line-height: 1;
+      }
+      .logo span {
+        color: var(--amber);
+        text-shadow: 0 0 10px var(--amber);
+      }
+      .logo-sub {
+        font-size: 9px;
+        color: var(--phosphor-dim);
+        letter-spacing: 0.25em;
+        margin-top: 4px;
+      }
+      .topbar-right {
+        font-size: 9px;
+        color: var(--phosphor-dim);
+        text-align: right;
+        line-height: 2;
+        letter-spacing: 0.12em;
+      }
+      .online {
+        color: var(--phosphor);
+      }
+
+      /* ── CURSOR ── */
+      @keyframes blink {
+        0%,
+        49% {
+          opacity: 1;
+        }
+        50%,
+        100% {
+          opacity: 0;
+        }
+      }
+      .cursor {
+        display: inline-block;
+        animation: blink 1s step-end infinite;
+      }
+
+      /* ── PROMPT ── */
+      .prompt {
+        font-size: 10px;
+        color: var(--phosphor-dim);
+        letter-spacing: 0.08em;
+        margin-bottom: 18px;
+      }
+      .prompt .cmd {
+        color: var(--phosphor);
+      }
+
+      /* ── CARDS GRID ── */
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        flex: 1;
+        min-height: 0;
+      }
+
+      .card {
+        position: relative;
+        border: 1px solid var(--phosphor-dim);
+        padding: 16px 14px 52px;
+        cursor: pointer;
+        text-decoration: none;
+        display: block;
+        overflow: hidden;
+        background: rgba(51, 255, 102, 0.012);
+        transition:
+          border-color 0.15s,
+          box-shadow 0.15s,
+          background 0.15s;
+      }
+      .card:hover {
+        border-color: var(--phosphor);
+        box-shadow:
+          inset 0 0 28px rgba(51, 255, 102, 0.07),
+          0 0 16px rgba(51, 255, 102, 0.18);
+        background: rgba(51, 255, 102, 0.04);
+      }
+
+      /* corner brackets */
+      .card::before,
+      .card::after {
+        content: "";
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        border-style: solid;
+        border-color: var(--phosphor-dim);
+        transition: border-color 0.15s;
+      }
+      .card::before {
+        top: 7px;
+        left: 7px;
+        border-width: 1px 0 0 1px;
+      }
+      .card::after {
+        bottom: 7px;
+        right: 7px;
+        border-width: 0 1px 1px 0;
+      }
+      .card:hover::before,
+      .card:hover::after {
+        border-color: var(--phosphor);
+      }
+
+      .card-num {
+        font-family: "VT323", monospace;
+        font-size: 52px;
+        line-height: 1;
+        color: rgba(51, 255, 102, 0.1);
+        position: absolute;
+        top: 6px;
+        right: 10px;
+        transition: color 0.15s;
+        user-select: none;
+      }
+      .card:hover .card-num {
+        color: rgba(51, 255, 102, 0.2);
+      }
+
+      .card-badge {
+        font-size: 8px;
+        letter-spacing: 0.25em;
+        color: var(--phosphor-dim);
+        margin-bottom: 10px;
+        transition: color 0.15s;
+      }
+      .card:hover .card-badge {
+        color: var(--amber);
+      }
+
+      .card-icon {
+        font-size: 24px;
+        margin-bottom: 8px;
+        filter: saturate(0) brightness(2);
+        transition: filter 0.25s;
+        display: block;
+      }
+      .card:hover .card-icon {
+        filter: saturate(1) brightness(1);
+      }
+
+      .card-title {
+        font-family: "VT323", monospace;
+        font-size: 24px;
+        color: var(--phosphor-bright);
+        letter-spacing: 0.06em;
+        line-height: 1.2;
+        margin-bottom: 3px;
+        text-shadow: 0 0 5px rgba(51, 255, 102, 0.4);
+      }
+      .card-title-en {
+        font-size: 8px;
+        color: var(--phosphor-dim);
+        letter-spacing: 0.2em;
+        margin-bottom: 12px;
+        transition: color 0.15s;
+      }
+      .card:hover .card-title-en {
+        color: var(--phosphor);
+      }
+
+      .card-desc {
+        font-size: 10px;
+        color: var(--phosphor-dim);
+        line-height: 1.8;
+        letter-spacing: 0.03em;
+        transition: color 0.15s;
+      }
+      .card:hover .card-desc {
+        color: var(--phosphor);
+      }
+
+      .card-tags {
+        position: absolute;
+        bottom: 13px;
+        left: 14px;
+        right: 14px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+      .tag {
+        font-size: 8px;
+        letter-spacing: 0.1em;
+        border: 1px solid var(--phosphor-dim);
+        padding: 2px 6px;
+        color: var(--phosphor-dim);
+        transition: all 0.15s;
+      }
+      .card:hover .tag {
+        border-color: var(--phosphor);
+        color: var(--phosphor);
+      }
+
+      .card-open {
+        position: absolute;
+        bottom: 13px;
+        right: 13px;
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        color: var(--amber);
+        text-shadow: 0 0 6px var(--amber);
+        opacity: 0;
+        transition: opacity 0.15s;
+      }
+      .card:hover .card-open {
+        opacity: 1;
+      }
+
+      /* ── BOTTOM BAR ── */
+      .bottombar {
+        border-top: 1px solid var(--phosphor-dim);
+        padding-top: 8px;
+        margin-top: 12px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 9px;
+        color: var(--phosphor-dim);
+        letter-spacing: 0.12em;
+        flex-shrink: 0;
+      }
+      @keyframes blinkSlow {
+        0%,
+        49% {
+          opacity: 1;
+        }
+        50%,
+        100% {
+          opacity: 0;
+        }
+      }
+      .blink {
+        animation: blinkSlow 1.3s step-end infinite;
+      }
+
+      /* ── RESPONSIVE ── */
+      @media (max-width: 640px) {
+        .cards {
+          grid-template-columns: 1fr;
+          overflow-y: auto;
+        }
+        .crt-shell {
+          border-radius: 10px;
+          height: 96vh;
+        }
+        .screen-inner {
+          padding: 14px 16px 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="crt-shell">
+      <div class="scanlines"></div>
+      <div class="sweep"></div>
+
+      <div class="screen-inner">
+        <div class="topbar">
+          <div>
+            <div class="logo">
+              A1<span>RER</span>.SYS<span class="cursor">_</span>
+            </div>
+            <div class="logo-sub">
+              CHUYUAN &nbsp;·&nbsp; CQUPT COMMS ENG &nbsp;·&nbsp; CHONGQING CN
+            </div>
+          </div>
+          <div class="topbar-right">
+            <div>SOPHOMORE &nbsp;2024–2025</div>
+            <div>MATLAB · JAVA · JS</div>
+            <div class="online">● ONLINE</div>
+          </div>
+        </div>
+
+        <div class="prompt">
+          root@a1rer:~$
+          <span class="cmd">ls ./projects --verbose --open-on-click</span>
+          &nbsp;&nbsp;[3 entries]
+        </div>
+
+        <div class="cards">
+          <a
+            class="card"
+            href="https://github.com/A1RER/Radar_Proj"
+            target="_blank"
+            rel="noopener"
+          >
+            <div class="card-num">01</div>
+            <div class="card-badge">RESEARCH PROJECT</div>
+            <span class="card-icon">📡</span>
+            <div class="card-title">天眸通感</div>
+            <div class="card-title-en">SKYSENSE 5G · ISAR IMAGING</div>
+            <div class="card-desc">
+              5G通感一体化雷达成像系统。<br />
+              ISAR成像链路 · PSO优化<br />
+              Kalman滤波追踪 · ML分类<br />
+              MATLAB完整仿真实现。
+            </div>
+            <div class="card-tags">
+              <span class="tag">MATLAB</span>
+              <span class="tag">ISAR</span>
+              <span class="tag">PSO</span>
+              <span class="tag">5G ISAC</span>
+            </div>
+            <div class="card-open">OPEN ↗</div>
+          </a>
+
+          <a
+            class="card"
+            href="https://github.com/A1RER"
+            target="_blank"
+            rel="noopener"
+          >
+            <div class="card-num">02</div>
+            <div class="card-badge">CREATIVE / FRONTEND</div>
+            <span class="card-icon">✋</span>
+            <div class="card-title">手势粒子特效</div>
+            <div class="card-title-en">GESTURE PARTICLE FX</div>
+            <div class="card-desc">
+              MediaPipe实时追踪21点<br />
+              手部关键点，5指尖各自<br />
+              驱动独立粒子流场，<br />
+              Canvas 2D · 60fps运行。
+            </div>
+            <div class="card-tags">
+              <span class="tag">MEDIAPIPE</span>
+              <span class="tag">CANVAS 2D</span>
+              <span class="tag">JAVASCRIPT</span>
+            </div>
+            <div class="card-open">OPEN ↗</div>
+          </a>
+
+          <a
+            class="card"
+            href="https://github.com/A1RER"
+            target="_blank"
+            rel="noopener"
+          >
+            <div class="card-num">03</div>
+            <div class="card-badge">ENGINEERING PROJECT</div>
+            <span class="card-icon">📚</span>
+            <div class="card-title">图书管理系统</div>
+            <div class="card-title-en">LIBRARY MGMT SYS</div>
+            <div class="card-desc">
+              Java多线程并发借阅控制，<br />
+              ReentrantLock保证原子性，<br />
+              MySQL持久化 · Swing GUI<br />
+              双角色权限 · 完整CRUD。
+            </div>
+            <div class="card-tags">
+              <span class="tag">JAVA</span>
+              <span class="tag">MYSQL</span>
+              <span class="tag">THREADING</span>
+              <span class="tag">SWING</span>
+            </div>
+            <div class="card-open">OPEN ↗</div>
+          </a>
+        </div>
+
+        <div class="bottombar">
+          <span
+            >SYS: NOMINAL &nbsp;·&nbsp; 3 PROJECTS &nbsp;·&nbsp; GITHUB:
+            A1RER</span
+          >
+          <span class="blink">■ READY</span>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
