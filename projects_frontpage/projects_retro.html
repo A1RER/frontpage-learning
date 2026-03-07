@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>A1RER - File Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --win-title: #000080;
+        --win-bg: #c0c0c0;
+        --win-white: #ffffff;
+        --win-dark: #808080;
+        --win-shadow: #dfdfdf;
+        --win-text: #000000;
+        --highlight: #000080;
+        --highlight-text: #ffffff;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      body {
+        min-height: 100vh;
+        font-family: 'IBM Plex Mono', 'Noto Sans SC', monospace;
+        background: #008080;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      /* window */
+      .window {
+        width: min(1060px, 96vw);
+        max-height: 92vh;
+        background: var(--win-bg);
+        border: 2px solid;
+        border-color: var(--win-shadow) var(--win-dark) var(--win-dark) var(--win-shadow);
+        box-shadow: 2px 2px 0 #000;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .title-bar {
+        background: linear-gradient(90deg, var(--win-title), #1084d0);
+        color: white;
+        padding: 3px 4px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 13px;
+        font-weight: 600;
+        user-select: none;
+      }
+      .title-bar-text {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .title-bar-text::before {
+        content: '📁';
+        font-size: 14px;
+      }
+      .title-buttons {
+        display: flex;
+        gap: 2px;
+      }
+      .title-btn {
+        width: 18px; height: 18px;
+        background: var(--win-bg);
+        border: 2px solid;
+        border-color: var(--win-shadow) var(--win-dark) var(--win-dark) var(--win-shadow);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 10px;
+        font-weight: bold;
+        color: var(--win-text);
+        cursor: pointer;
+        line-height: 1;
+      }
+
+      /* menu bar */
+      .menu-bar {
+        background: var(--win-bg);
+        padding: 2px 6px;
+        border-bottom: 1px solid var(--win-dark);
+        font-size: 12px;
+        display: flex;
+        gap: 16px;
+      }
+      .menu-bar span {
+        cursor: pointer;
+        padding: 1px 4px;
+      }
+      .menu-bar span:first-child { text-decoration: underline; }
+
+      /* address bar */
+      .address-bar {
+        background: var(--win-bg);
+        padding: 4px 6px;
+        border-bottom: 1px solid var(--win-dark);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+      }
+      .address-bar label {
+        font-weight: 600;
+        flex-shrink: 0;
+      }
+      .address-input {
+        flex: 1;
+        background: white;
+        border: 2px solid;
+        border-color: var(--win-dark) var(--win-shadow) var(--win-shadow) var(--win-dark);
+        padding: 2px 6px;
+        font-family: inherit;
+        font-size: 12px;
+      }
+
+      /* content */
+      .content {
+        flex: 1;
+        overflow-y: auto;
+        background: var(--win-white);
+        border: 2px solid;
+        border-color: var(--win-dark) var(--win-shadow) var(--win-shadow) var(--win-dark);
+        margin: 2px;
+      }
+
+      /* list header */
+      .list-header {
+        display: grid;
+        grid-template-columns: 32px 1.5fr 2fr 100px 80px;
+        padding: 4px 8px;
+        border-bottom: 2px solid var(--win-bg);
+        font-size: 12px;
+        font-weight: 600;
+        background: var(--win-bg);
+        position: sticky;
+        top: 0;
+        user-select: none;
+      }
+      .list-header span {
+        border-right: 1px solid var(--win-dark);
+        padding-right: 8px;
+      }
+
+      /* file row */
+      .file-row {
+        display: grid;
+        grid-template-columns: 32px 1.5fr 2fr 100px 80px;
+        padding: 3px 8px;
+        font-size: 12px;
+        text-decoration: none;
+        color: var(--win-text);
+        border-bottom: 1px solid #eee;
+        align-items: center;
+        cursor: pointer;
+      }
+      .file-row:hover {
+        background: var(--highlight);
+        color: var(--highlight-text);
+      }
+      .file-row .icon {
+        font-size: 18px;
+        text-align: center;
+      }
+      .file-row .name {
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .file-row .desc {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #666;
+        font-size: 11px;
+      }
+      .file-row:hover .desc { color: #ccc; }
+      .file-row .lang {
+        font-size: 11px;
+      }
+      .file-row .size {
+        font-size: 11px;
+        text-align: right;
+      }
+
+      /* detail panel (bottom) */
+      .detail-panel {
+        background: var(--win-bg);
+        border-top: 2px solid;
+        border-color: var(--win-shadow) var(--win-dark) var(--win-dark) var(--win-shadow);
+        padding: 4px 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 11px;
+      }
+
+      /* status bar */
+      .status-bar {
+        background: var(--win-bg);
+        padding: 3px 8px;
+        font-size: 11px;
+        display: flex;
+        gap: 20px;
+        border-top: 2px solid;
+        border-color: var(--win-dark) var(--win-shadow) var(--win-shadow) var(--win-dark);
+      }
+      .status-section {
+        border: 1px solid;
+        border-color: var(--win-dark) var(--win-shadow) var(--win-shadow) var(--win-dark);
+        padding: 1px 8px;
+      }
+
+      @media (max-width: 640px) {
+        .list-header, .file-row {
+          grid-template-columns: 28px 1fr 80px;
+        }
+        .file-row .desc, .list-header span:nth-child(3) { display: none; }
+        .file-row .size, .list-header span:nth-child(5) { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="window">
+      <div class="title-bar">
+        <span class="title-bar-text">A1RER - Project Explorer</span>
+        <div class="title-buttons">
+          <div class="title-btn">_</div>
+          <div class="title-btn">□</div>
+          <div class="title-btn">×</div>
+        </div>
+      </div>
+
+      <div class="menu-bar">
+        <span>File</span>
+        <span>Edit</span>
+        <span>View</span>
+        <span>Help</span>
+      </div>
+
+      <div class="address-bar">
+        <label>Address:</label>
+        <div class="address-input">C:\Users\A1RER\Projects\</div>
+      </div>
+
+      <div class="content">
+        <div class="list-header">
+          <span></span>
+          <span>Name</span>
+          <span>Description</span>
+          <span>Language</span>
+          <span>Status</span>
+        </div>
+
+        <a class="file-row" href="https://github.com/A1RER/Radar_Proj" target="_blank">
+          <span class="icon">📡</span>
+          <span class="name">Radar_Proj</span>
+          <span class="desc">5G通感一体化雷达成像系统 · ISAR · PSO</span>
+          <span class="lang">MATLAB</span>
+          <span class="size">Research</span>
+        </a>
+
+        <a class="file-row" href="https://github.com/A1RER/particle_effects_web" target="_blank">
+          <span class="icon">✋</span>
+          <span class="name">particle_effects_web</span>
+          <span class="desc">手势粒子特效 · MediaPipe · Canvas 2D</span>
+          <span class="lang">HTML/JS</span>
+          <span class="size">Creative</span>
+        </a>
+
+        <a class="file-row" href="https://github.com/A1RER/book_management-system" target="_blank">
+          <span class="icon">📚</span>
+          <span class="name">book_management-system</span>
+          <span class="desc">图书管理系统 · 多线程 · MySQL · Swing</span>
+          <span class="lang">Java</span>
+          <span class="size">Engineering</span>
+        </a>
+
+        <a class="file-row" href="../cyberpunk_city/cyberpunk_city.html" target="_blank">
+          <span class="icon">🌃</span>
+          <span class="name">cyberpunk_city</span>
+          <span class="desc">赛博朋克城市生成 · 霓虹灯光 · 粒子雨</span>
+          <span class="lang">JS</span>
+          <span class="size">Creative</span>
+        </a>
+
+        <a class="file-row" href="https://github.com/A1RER/algorithm-ai-practice" target="_blank">
+          <span class="icon">🧠</span>
+          <span class="name">algorithm-ai-practice</span>
+          <span class="desc">算法与AI实践项目集合</span>
+          <span class="lang">Python</span>
+          <span class="size">AI</span>
+        </a>
+
+        <a class="file-row" href="https://github.com/A1RER/AIGC-Learning-15weeks" target="_blank">
+          <span class="icon">🤖</span>
+          <span class="name">AIGC-Learning-15weeks</span>
+          <span class="desc">15周AIGC系统学习 · 生成式AI技术栈</span>
+          <span class="lang">Python</span>
+          <span class="size">Learning</span>
+        </a>
+
+        <a class="file-row" href="https://github.com/A1RER/SFMSimulator" target="_blank">
+          <span class="icon">🚶</span>
+          <span class="name">SFMSimulator</span>
+          <span class="desc">社会力模型算法演示 · 行人仿真</span>
+          <span class="lang">Python</span>
+          <span class="size">Simulation</span>
+        </a>
+
+        <a class="file-row" href="https://github.com/A1RER/signal_system_study" target="_blank">
+          <span class="icon">📶</span>
+          <span class="name">signal_system_study</span>
+          <span class="desc">信号与系统学习 · MATLAB/Python实现</span>
+          <span class="lang">MATLAB</span>
+          <span class="size">Coursework</span>
+        </a>
+
+        <a class="file-row" href="https://github.com/A1RER/data_structure" target="_blank">
+          <span class="icon">🔗</span>
+          <span class="name">data_structure</span>
+          <span class="desc">数据结构(C语言) · CQUPT 2024级</span>
+          <span class="lang">C</span>
+          <span class="size">Coursework</span>
+        </a>
+
+        <a class="file-row" href="https://github.com/A1RER/lanscanner" target="_blank">
+          <span class="icon">🔍</span>
+          <span class="name">lanscanner</span>
+          <span class="desc">局域网IP地址扫描器</span>
+          <span class="lang">Python</span>
+          <span class="size">Tool</span>
+        </a>
+
+        <a class="file-row" href="https://github.com/A1RER/matlabRC-" target="_blank">
+          <span class="icon">📊</span>
+          <span class="name">matlabRC-</span>
+          <span class="desc">MATLAB数值计算与仿真</span>
+          <span class="lang">MATLAB</span>
+          <span class="size">Project</span>
+        </a>
+
+        <a class="file-row" href="https://github.com/A1RER/frontpage-learning" target="_blank">
+          <span class="icon">🌐</span>
+          <span class="name">frontpage-learning</span>
+          <span class="desc">前端代码练习 · 本站源码</span>
+          <span class="lang">HTML</span>
+          <span class="size">Frontend</span>
+        </a>
+      </div>
+
+      <div class="status-bar">
+        <span class="status-section">12 object(s)</span>
+        <span class="status-section">CQUPT · Communications Engineering</span>
+        <span class="status-section">A1RER Online</span>
+      </div>
+    </div>
+  </body>
+</html>

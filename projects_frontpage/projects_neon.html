@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>A1RER // NEON</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --neon-pink: #ff2d95;
+        --neon-cyan: #00f0ff;
+        --neon-yellow: #ffe600;
+        --bg: #0a0a12;
+        --card-bg: #12121e;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      body {
+        min-height: 100vh;
+        font-family: 'Rajdhani', 'Noto Sans SC', sans-serif;
+        background: var(--bg);
+        color: #e0e0e0;
+        overflow-x: hidden;
+      }
+
+      /* grid bg */
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+        background-size: 60px 60px;
+        z-index: 0;
+      }
+
+      .container {
+        position: relative;
+        z-index: 1;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 50px 24px 40px;
+      }
+
+      /* header */
+      .header {
+        text-align: center;
+        margin-bottom: 50px;
+        position: relative;
+      }
+      .header h1 {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 48px;
+        font-weight: 900;
+        letter-spacing: 0.15em;
+        background: linear-gradient(90deg, var(--neon-pink), var(--neon-cyan));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: none;
+        filter: drop-shadow(0 0 20px rgba(255, 45, 149, 0.3));
+      }
+      .header .subtitle {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 11px;
+        letter-spacing: 0.5em;
+        color: var(--neon-cyan);
+        margin-top: 8px;
+        text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+      }
+      .header .line {
+        width: 200px;
+        height: 1px;
+        margin: 20px auto 0;
+        background: linear-gradient(90deg, transparent, var(--neon-pink), var(--neon-cyan), transparent);
+      }
+
+      .count {
+        text-align: center;
+        margin-bottom: 30px;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 12px;
+        letter-spacing: 0.3em;
+        color: rgba(255,255,255,0.3);
+      }
+      .count span { color: var(--neon-yellow); text-shadow: 0 0 8px var(--neon-yellow); }
+
+      /* grid */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+
+      .card {
+        background: var(--card-bg);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 20px 18px;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        position: relative;
+        overflow: hidden;
+        clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+        transition: all 0.25s;
+      }
+      /* corner cut decoration */
+      .card::before {
+        content: '';
+        position: absolute;
+        top: 0; right: 0;
+        width: 22px; height: 22px;
+        border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+        transform: rotate(45deg) translate(7px, -7px);
+      }
+      .card::after {
+        content: '';
+        position: absolute;
+        bottom: -1px; left: -1px;
+        width: 100%; height: 3px;
+        background: linear-gradient(90deg, var(--neon-pink), var(--neon-cyan));
+        opacity: 0;
+        transition: opacity 0.25s;
+      }
+      .card:hover {
+        border-color: rgba(0, 240, 255, 0.2);
+        box-shadow: 0 0 30px rgba(0, 240, 255, 0.08), inset 0 0 30px rgba(0, 240, 255, 0.03);
+        transform: translateY(-2px);
+      }
+      .card:hover::after { opacity: 1; }
+
+      .card-num {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 36px;
+        font-weight: 900;
+        position: absolute;
+        top: 8px; right: 14px;
+        color: rgba(255, 255, 255, 0.04);
+        line-height: 1;
+      }
+
+      .card-badge {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 8px;
+        letter-spacing: 0.25em;
+        color: var(--neon-pink);
+        text-shadow: 0 0 6px rgba(255, 45, 149, 0.4);
+        margin-bottom: 10px;
+      }
+
+      .card-icon { font-size: 24px; margin-bottom: 8px; display: block; }
+
+      .card-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 2px;
+      }
+      .card-title-en {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 8px;
+        letter-spacing: 0.2em;
+        color: var(--neon-cyan);
+        opacity: 0.5;
+        margin-bottom: 10px;
+      }
+
+      .card-desc {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.4);
+        line-height: 1.7;
+        margin-bottom: 14px;
+      }
+
+      .card-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .tag {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 8px;
+        letter-spacing: 0.1em;
+        padding: 3px 8px;
+        border: 1px solid rgba(0, 240, 255, 0.2);
+        color: var(--neon-cyan);
+        transition: all 0.2s;
+      }
+      .card:hover .tag {
+        border-color: var(--neon-cyan);
+        box-shadow: 0 0 8px rgba(0, 240, 255, 0.2);
+      }
+
+      .card-arrow {
+        position: absolute;
+        bottom: 14px; right: 16px;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 10px;
+        color: var(--neon-yellow);
+        text-shadow: 0 0 8px var(--neon-yellow);
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+      .card:hover .card-arrow { opacity: 1; }
+
+      .footer {
+        text-align: center;
+        margin-top: 50px;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 10px;
+        letter-spacing: 0.4em;
+        color: rgba(255,255,255,0.15);
+      }
+
+      @media (max-width: 768px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+      @media (max-width: 480px) {
+        .grid { grid-template-columns: 1fr; }
+        .header h1 { font-size: 32px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>A1RER</h1>
+        <div class="subtitle">CQUPT // COMMS ENG // CHONGQING</div>
+        <div class="line"></div>
+      </div>
+
+      <div class="count">[ <span>11</span> PROJECTS LOADED ]</div>
+
+      <div class="grid">
+        <a class="card" href="https://github.com/A1RER/Radar_Proj" target="_blank">
+          <div class="card-num">01</div>
+          <div class="card-badge">RESEARCH</div>
+          <span class="card-icon">📡</span>
+          <div class="card-title">天眸通感</div>
+          <div class="card-title-en">SKYSENSE 5G ISAR</div>
+          <div class="card-desc">5G通感一体化雷达成像，ISAR链路、PSO优化、Kalman滤波。</div>
+          <div class="card-tags">
+            <span class="tag">MATLAB</span><span class="tag">ISAR</span><span class="tag">5G</span>
+          </div>
+          <div class="card-arrow">→</div>
+        </a>
+
+        <a class="card" href="https://github.com/A1RER/particle_effects_web" target="_blank">
+          <div class="card-num">02</div>
+          <div class="card-badge">CREATIVE</div>
+          <span class="card-icon">✋</span>
+          <div class="card-title">手势粒子特效</div>
+          <div class="card-title-en">GESTURE PARTICLE FX</div>
+          <div class="card-desc">MediaPipe手部追踪，5指尖驱动粒子流场，Canvas 2D。</div>
+          <div class="card-tags">
+            <span class="tag">MEDIAPIPE</span><span class="tag">CANVAS</span><span class="tag">JS</span>
+          </div>
+          <div class="card-arrow">→</div>
+        </a>
+
+        <a class="card" href="https://github.com/A1RER/book_management-system" target="_blank">
+          <div class="card-num">03</div>
+          <div class="card-badge">ENGINEERING</div>
+          <span class="card-icon">📚</span>
+          <div class="card-title">图书管理系统</div>
+          <div class="card-title-en">LIBRARY MGMT SYS</div>
+          <div class="card-desc">Java多线程借阅控制，MySQL持久化，Swing GUI双角色。</div>
+          <div class="card-tags">
+            <span class="tag">JAVA</span><span class="tag">MYSQL</span><span class="tag">SWING</span>
+          </div>
+          <div class="card-arrow">→</div>
+        </a>
+
+        <a class="card" href="../cyberpunk_city/cyberpunk_city.html" target="_blank">
+          <div class="card-num">04</div>
+          <div class="card-badge">CREATIVE</div>
+          <span class="card-icon">🌃</span>
+          <div class="card-title">赛博朋克城市</div>
+          <div class="card-title-en">NEO CITY GEN</div>
+          <div class="card-desc">Canvas 2D程序化城市，霓虹灯光与粒子雨效果。</div>
+          <div class="card-tags">
+            <span class="tag">CANVAS</span><span class="tag">JS</span><span class="tag">GEN</span>
+          </div>
+          <div class="card-arrow">→</div>
+        </a>
+
+        <a class="card" href="https://github.com/A1RER/algorithm-ai-practice" target="_blank">
+          <div class="card-num">05</div>
+          <div class="card-badge">AI</div>
+          <span class="card-icon">🧠</span>
+          <div class="card-title">算法与AI实践</div>
+          <div class="card-title-en">ALGORITHM & AI</div>
+          <div class="card-desc">经典算法与人工智能实战练习项目集合。</div>
+          <div class="card-tags">
+            <span class="tag">PYTHON</span><span class="tag">AI</span><span class="tag">ALGO</span>
+          </div>
+          <div class="card-arrow">→</div>
+        </a>
+
+        <a class="card" href="https://github.com/A1RER/AIGC-Learning-15weeks" target="_blank">
+          <div class="card-num">06</div>
+          <div class="card-badge">LEARNING</div>
+          <span class="card-icon">🤖</span>
+          <div class="card-title">AIGC学习</div>
+          <div class="card-title-en">AIGC 15 WEEKS</div>
+          <div class="card-desc">15周AIGC系统学习，生成式AI技术栈。</div>
+          <div class="card-tags">
+            <span class="tag">PYTHON</span><span class="tag">AIGC</span>
+          </div>
+          <div class="card-arrow">→</div>
+        </a>
+
+        <a class="card" href="https://github.com/A1RER/SFMSimulator" target="_blank">
+          <div class="card-num">07</div>
+          <div class="card-badge">SIMULATION</div>
+          <span class="card-icon">🚶</span>
+          <div class="card-title">社会力模型仿真</div>
+          <div class="card-title-en">SOCIAL FORCE MODEL</div>
+          <div class="card-desc">行人运动仿真，碰撞避让算法可视化。</div>
+          <div class="card-tags">
+            <span class="tag">PYTHON</span><span class="tag">SFM</span><span class="tag">SIM</span>
+          </div>
+          <div class="card-arrow">→</div>
+        </a>
+
+        <a class="card" href="https://github.com/A1RER/signal_system_study" target="_blank">
+          <div class="card-num">08</div>
+          <div class="card-badge">COURSEWORK</div>
+          <span class="card-icon">📶</span>
+          <div class="card-title">信号与系统</div>
+          <div class="card-title-en">SIGNAL & SYSTEM</div>
+          <div class="card-desc">信号与系统学习，MATLAB与Python实现。</div>
+          <div class="card-tags">
+            <span class="tag">MATLAB</span><span class="tag">PYTHON</span><span class="tag">DSP</span>
+          </div>
+          <div class="card-arrow">→</div>
+        </a>
+
+        <a class="card" href="https://github.com/A1RER/data_structure" target="_blank">
+          <div class="card-num">09</div>
+          <div class="card-badge">COURSEWORK</div>
+          <span class="card-icon">🔗</span>
+          <div class="card-title">数据结构</div>
+          <div class="card-title-en">DATA STRUCTURE C</div>
+          <div class="card-desc">C语言实现经典数据结构与算法练习。</div>
+          <div class="card-tags">
+            <span class="tag">C</span><span class="tag">DSA</span><span class="tag">CQUPT</span>
+          </div>
+          <div class="card-arrow">→</div>
+        </a>
+
+        <a class="card" href="https://github.com/A1RER/lanscanner" target="_blank">
+          <div class="card-num">10</div>
+          <div class="card-badge">TOOL</div>
+          <span class="card-icon">🔍</span>
+          <div class="card-title">局域网扫描器</div>
+          <div class="card-title-en">LAN SCANNER</div>
+          <div class="card-desc">扫描本地网络IP，快速发现局域网设备。</div>
+          <div class="card-tags">
+            <span class="tag">PYTHON</span><span class="tag">NETWORK</span>
+          </div>
+          <div class="card-arrow">→</div>
+        </a>
+
+        <a class="card" href="https://github.com/A1RER/matlabRC-" target="_blank">
+          <div class="card-num">11</div>
+          <div class="card-badge">MATLAB</div>
+          <span class="card-icon">📊</span>
+          <div class="card-title">MATLAB RC</div>
+          <div class="card-title-en">MATLAB PROJECT</div>
+          <div class="card-desc">MATLAB数值计算与仿真实验。</div>
+          <div class="card-tags">
+            <span class="tag">MATLAB</span><span class="tag">SIM</span>
+          </div>
+          <div class="card-arrow">→</div>
+        </a>
+      </div>
+
+      <div class="footer">A1RER // SYSTEM ONLINE // 2025</div>
+    </div>
+  </body>
+</html>

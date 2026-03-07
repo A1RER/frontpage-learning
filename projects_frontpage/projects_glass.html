@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>A1RER · Glass</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --glass-bg: rgba(255, 255, 255, 0.08);
+        --glass-border: rgba(255, 255, 255, 0.15);
+        --glass-hover: rgba(255, 255, 255, 0.14);
+        --text: #f0f0f0;
+        --text-dim: rgba(255, 255, 255, 0.5);
+        --accent: #6c63ff;
+        --accent2: #00d4aa;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      body {
+        min-height: 100vh;
+        font-family: 'Inter', 'Noto Sans SC', sans-serif;
+        color: var(--text);
+        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+        background-attachment: fixed;
+        overflow-x: hidden;
+      }
+
+      /* animated bg orbs */
+      body::before, body::after {
+        content: '';
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(120px);
+        opacity: 0.4;
+        z-index: 0;
+        animation: float 20s ease-in-out infinite;
+      }
+      body::before {
+        width: 600px; height: 600px;
+        background: var(--accent);
+        top: -200px; left: -100px;
+      }
+      body::after {
+        width: 500px; height: 500px;
+        background: var(--accent2);
+        bottom: -200px; right: -100px;
+        animation-delay: -10s;
+      }
+      @keyframes float {
+        0%, 100% { transform: translate(0, 0); }
+        50% { transform: translate(60px, 40px); }
+      }
+
+      .container {
+        position: relative;
+        z-index: 1;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 60px 24px 40px;
+      }
+
+      /* header */
+      .header {
+        text-align: center;
+        margin-bottom: 50px;
+      }
+      .avatar {
+        width: 80px; height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        display: flex; align-items: center; justify-content: center;
+        font-size: 36px; font-weight: 700;
+        margin: 0 auto 16px;
+        box-shadow: 0 0 40px rgba(108, 99, 255, 0.4);
+      }
+      .header h1 {
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        margin-bottom: 8px;
+      }
+      .header h1 span { color: var(--accent2); }
+      .header p {
+        color: var(--text-dim);
+        font-size: 14px;
+        letter-spacing: 0.1em;
+      }
+      .tag-row {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        margin-top: 16px;
+        flex-wrap: wrap;
+      }
+      .htag {
+        font-size: 11px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        backdrop-filter: blur(10px);
+        color: var(--text-dim);
+        letter-spacing: 0.06em;
+      }
+
+      /* grid */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+
+      .card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 24px 20px;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+      .card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--accent), var(--accent2));
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      .card:hover {
+        background: var(--glass-hover);
+        transform: translateY(-4px);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3), 0 0 30px rgba(108,99,255,0.1);
+      }
+      .card:hover::before { opacity: 1; }
+
+      .card-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .card-icon {
+        font-size: 28px;
+        width: 44px; height: 44px;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(255,255,255,0.06);
+        border-radius: 12px;
+        flex-shrink: 0;
+      }
+      .card-head-text h3 {
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 1.3;
+      }
+      .card-head-text small {
+        font-size: 10px;
+        color: var(--text-dim);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .card-desc {
+        font-size: 12px;
+        color: var(--text-dim);
+        line-height: 1.7;
+        flex: 1;
+        margin-bottom: 14px;
+      }
+
+      .card-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .card-tags span {
+        font-size: 10px;
+        padding: 3px 10px;
+        border-radius: 12px;
+        background: rgba(108, 99, 255, 0.15);
+        color: rgba(255,255,255,0.7);
+        letter-spacing: 0.04em;
+      }
+
+      .card-num {
+        position: absolute;
+        top: 14px; right: 18px;
+        font-size: 11px;
+        font-weight: 700;
+        color: rgba(255,255,255,0.12);
+      }
+
+      /* footer */
+      .footer {
+        text-align: center;
+        margin-top: 50px;
+        font-size: 12px;
+        color: var(--text-dim);
+        letter-spacing: 0.08em;
+      }
+
+      @media (max-width: 768px) {
+        .grid { grid-template-columns: repeat(2, 1fr); }
+      }
+      @media (max-width: 480px) {
+        .grid { grid-template-columns: 1fr; }
+        .container { padding: 30px 16px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="avatar">A</div>
+        <h1>A1<span>RER</span></h1>
+        <p>CQUPT · Communications Engineering · Chongqing</p>
+        <div class="tag-row">
+          <span class="htag">MATLAB</span>
+          <span class="htag">Java</span>
+          <span class="htag">Python</span>
+          <span class="htag">JavaScript</span>
+          <span class="htag">C</span>
+        </div>
+      </div>
+
+      <div class="grid">
+        <a class="card" href="https://github.com/A1RER/Radar_Proj" target="_blank">
+          <span class="card-num">#01</span>
+          <div class="card-head">
+            <div class="card-icon">📡</div>
+            <div class="card-head-text">
+              <h3>天眸通感</h3>
+              <small>5G ISAR Imaging</small>
+            </div>
+          </div>
+          <div class="card-desc">5G通感一体化雷达成像系统，ISAR成像链路、PSO优化、Kalman滤波追踪。</div>
+          <div class="card-tags"><span>MATLAB</span><span>ISAR</span><span>5G</span></div>
+        </a>
+
+        <a class="card" href="https://github.com/A1RER/particle_effects_web" target="_blank">
+          <span class="card-num">#02</span>
+          <div class="card-head">
+            <div class="card-icon">✋</div>
+            <div class="card-head-text">
+              <h3>手势粒子特效</h3>
+              <small>Gesture Particle FX</small>
+            </div>
+          </div>
+          <div class="card-desc">MediaPipe实时追踪手部关键点，5指尖驱动独立粒子流场，Canvas 2D 60fps。</div>
+          <div class="card-tags"><span>MediaPipe</span><span>Canvas</span><span>JS</span></div>
+        </a>
+
+        <a class="card" href="https://github.com/A1RER/book_management-system" target="_blank">
+          <span class="card-num">#03</span>
+          <div class="card-head">
+            <div class="card-icon">📚</div>
+            <div class="card-head-text">
+              <h3>图书管理系统</h3>
+              <small>Library Mgmt System</small>
+            </div>
+          </div>
+          <div class="card-desc">Java多线程并发借阅控制，MySQL持久化，Swing GUI，双角色权限CRUD。</div>
+          <div class="card-tags"><span>Java</span><span>MySQL</span><span>Swing</span></div>
+        </a>
+
+        <a class="card" href="../cyberpunk_city/cyberpunk_city.html" target="_blank">
+          <span class="card-num">#04</span>
+          <div class="card-head">
+            <div class="card-icon">🌃</div>
+            <div class="card-head-text">
+              <h3>赛博朋克城市</h3>
+              <small>Neo City Generator</small>
+            </div>
+          </div>
+          <div class="card-desc">Canvas 2D程序化城市生成，霓虹灯光与粒子雨效果，鼠标交互粒子流场。</div>
+          <div class="card-tags"><span>Canvas</span><span>JS</span><span>Generative</span></div>
+        </a>
+
+        <a class="card" href="https://github.com/A1RER/algorithm-ai-practice" target="_blank">
+          <span class="card-num">#05</span>
+          <div class="card-head">
+            <div class="card-icon">🧠</div>
+            <div class="card-head-text">
+              <h3>算法与AI实践</h3>
+              <small>Algorithm & AI</small>
+            </div>
+          </div>
+          <div class="card-desc">算法与人工智能实践项目集合，涵盖经典算法与AI实战练习。</div>
+          <div class="card-tags"><span>Python</span><span>AI</span><span>Algorithm</span></div>
+        </a>
+
+        <a class="card" href="https://github.com/A1RER/AIGC-Learning-15weeks" target="_blank">
+          <span class="card-num">#06</span>
+          <div class="card-head">
+            <div class="card-icon">🤖</div>
+            <div class="card-head-text">
+              <h3>AIGC学习</h3>
+              <small>15 Weeks Learning</small>
+            </div>
+          </div>
+          <div class="card-desc">15周AIGC系统学习计划，涵盖生成式AI技术栈与实践项目。</div>
+          <div class="card-tags"><span>Python</span><span>AIGC</span></div>
+        </a>
+
+        <a class="card" href="https://github.com/A1RER/SFMSimulator" target="_blank">
+          <span class="card-num">#07</span>
+          <div class="card-head">
+            <div class="card-icon">🚶</div>
+            <div class="card-head-text">
+              <h3>社会力模型仿真</h3>
+              <small>Social Force Model</small>
+            </div>
+          </div>
+          <div class="card-desc">Social Force Model算法演示，行人运动仿真与碰撞避让可视化。</div>
+          <div class="card-tags"><span>Python</span><span>SFM</span><span>Simulation</span></div>
+        </a>
+
+        <a class="card" href="https://github.com/A1RER/signal_system_study" target="_blank">
+          <span class="card-num">#08</span>
+          <div class="card-head">
+            <div class="card-icon">📶</div>
+            <div class="card-head-text">
+              <h3>信号与系统</h3>
+              <small>Signal & System</small>
+            </div>
+          </div>
+          <div class="card-desc">信号与系统课程学习，MATLAB与Python代码实现，含学习笔记。</div>
+          <div class="card-tags"><span>MATLAB</span><span>Python</span><span>DSP</span></div>
+        </a>
+
+        <a class="card" href="https://github.com/A1RER/data_structure" target="_blank">
+          <span class="card-num">#09</span>
+          <div class="card-head">
+            <div class="card-icon">🔗</div>
+            <div class="card-head-text">
+              <h3>数据结构</h3>
+              <small>Data Structure · C</small>
+            </div>
+          </div>
+          <div class="card-desc">CQUPT 2024级数据结构，C语言实现经典数据结构与算法。</div>
+          <div class="card-tags"><span>C</span><span>Data Struct</span></div>
+        </a>
+
+        <a class="card" href="https://github.com/A1RER/lanscanner" target="_blank">
+          <span class="card-num">#10</span>
+          <div class="card-head">
+            <div class="card-icon">🔍</div>
+            <div class="card-head-text">
+              <h3>局域网扫描器</h3>
+              <small>LAN Scanner</small>
+            </div>
+          </div>
+          <div class="card-desc">扫描本地网络IP地址，快速发现局域网内设备，Python实现。</div>
+          <div class="card-tags"><span>Python</span><span>Network</span></div>
+        </a>
+
+        <a class="card" href="https://github.com/A1RER/matlabRC-" target="_blank">
+          <span class="card-num">#11</span>
+          <div class="card-head">
+            <div class="card-icon">📊</div>
+            <div class="card-head-text">
+              <h3>MATLAB RC</h3>
+              <small>MATLAB Project</small>
+            </div>
+          </div>
+          <div class="card-desc">MATLAB数值计算与仿真实验项目。</div>
+          <div class="card-tags"><span>MATLAB</span><span>Simulation</span></div>
+        </a>
+      </div>
+
+      <div class="footer">A1RER · CQUPT · 2025</div>
+    </div>
+  </body>
+</html>
