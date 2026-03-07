@@ -223,10 +223,11 @@
       /* ── CARDS GRID ── */
       .cards {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, 1fr);
         gap: 14px;
         flex: 1;
         min-height: 0;
+        overflow-y: auto;
       }
 
       .card {
@@ -412,7 +413,6 @@
       @media (max-width: 640px) {
         .cards {
           grid-template-columns: 1fr;
-          overflow-y: auto;
         }
         .crt-shell {
           border-radius: 10px;
@@ -449,7 +449,7 @@
         <div class="prompt">
           root@a1rer:~$
           <span class="cmd">ls ./projects --verbose --open-on-click</span>
-          &nbsp;&nbsp;[3 entries]
+          &nbsp;&nbsp;[4 entries]
         </div>
 
         <div class="cards">
@@ -529,11 +529,36 @@
             </div>
             <div class="card-open">OPEN ↗</div>
           </a>
+
+          <a
+            class="card"
+            href="../cyberpunk_city/cyberpunk_city.html"
+            target="_blank"
+            rel="noopener"
+          >
+            <div class="card-num">04</div>
+            <div class="card-badge">CREATIVE / FRONTEND</div>
+            <span class="card-icon">🌃</span>
+            <div class="card-title">赛博朋克城市</div>
+            <div class="card-title-en">NEO CITY // GEN</div>
+            <div class="card-desc">
+              Canvas 2D程序化城市生成，<br />
+              霓虹灯光 · 粒子雨效果<br />
+              鼠标交互驱动粒子流场，<br />
+              纯JavaScript实现。
+            </div>
+            <div class="card-tags">
+              <span class="tag">CANVAS 2D</span>
+              <span class="tag">JAVASCRIPT</span>
+              <span class="tag">GENERATIVE</span>
+            </div>
+            <div class="card-open">OPEN ↗</div>
+          </a>
         </div>
 
         <div class="bottombar">
           <span
-            >SYS: NOMINAL &nbsp;·&nbsp; 3 PROJECTS &nbsp;·&nbsp; GITHUB:
+            >SYS: NOMINAL &nbsp;·&nbsp; 4 PROJECTS &nbsp;·&nbsp; GITHUB:
             A1RER</span
           >
           <span class="blink">■ READY</span>
