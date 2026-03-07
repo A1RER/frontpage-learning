@@ -38,8 +38,8 @@
       /* ── CRT SHELL ── */
       .crt-shell {
         position: relative;
-        width: min(920px, 96vw);
-        height: min(640px, 96vh);
+        width: min(1100px, 96vw);
+        height: min(90vh, 96vh);
         background: var(--bg);
         border-radius: 18px / 22px;
         border: 3px solid #1a2e1e;
@@ -224,15 +224,26 @@
       .cards {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 14px;
+        gap: 10px;
         flex: 1;
         min-height: 0;
+        overflow-y: auto;
+        padding-right: 4px;
+      }
+      .cards::-webkit-scrollbar {
+        width: 4px;
+      }
+      .cards::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .cards::-webkit-scrollbar-thumb {
+        background: var(--phosphor-dim);
       }
 
       .card {
         position: relative;
         border: 1px solid var(--phosphor-dim);
-        padding: 16px 14px 52px;
+        padding: 12px 12px 42px;
         cursor: pointer;
         text-decoration: none;
         display: block;
@@ -279,7 +290,7 @@
 
       .card-num {
         font-family: "VT323", monospace;
-        font-size: 52px;
+        font-size: 40px;
         line-height: 1;
         color: rgba(51, 255, 102, 0.1);
         position: absolute;
@@ -293,10 +304,10 @@
       }
 
       .card-badge {
-        font-size: 8px;
-        letter-spacing: 0.25em;
+        font-size: 7px;
+        letter-spacing: 0.2em;
         color: var(--phosphor-dim);
-        margin-bottom: 10px;
+        margin-bottom: 6px;
         transition: color 0.15s;
       }
       .card:hover .card-badge {
@@ -304,8 +315,8 @@
       }
 
       .card-icon {
-        font-size: 24px;
-        margin-bottom: 8px;
+        font-size: 20px;
+        margin-bottom: 6px;
         filter: saturate(0) brightness(2);
         transition: filter 0.25s;
         display: block;
@@ -316,7 +327,7 @@
 
       .card-title {
         font-family: "VT323", monospace;
-        font-size: 24px;
+        font-size: 20px;
         color: var(--phosphor-bright);
         letter-spacing: 0.06em;
         line-height: 1.2;
@@ -335,7 +346,7 @@
       }
 
       .card-desc {
-        font-size: 10px;
+        font-size: 9px;
         color: var(--phosphor-dim);
         line-height: 1.8;
         letter-spacing: 0.03em;
@@ -347,15 +358,15 @@
 
       .card-tags {
         position: absolute;
-        bottom: 13px;
-        left: 14px;
-        right: 14px;
+        bottom: 10px;
+        left: 12px;
+        right: 12px;
         display: flex;
         flex-wrap: wrap;
         gap: 4px;
       }
       .tag {
-        font-size: 8px;
+        font-size: 7px;
         letter-spacing: 0.1em;
         border: 1px solid var(--phosphor-dim);
         padding: 2px 6px;
@@ -369,8 +380,8 @@
 
       .card-open {
         position: absolute;
-        bottom: 13px;
-        right: 13px;
+        bottom: 10px;
+        right: 12px;
         font-size: 9px;
         letter-spacing: 0.12em;
         color: var(--amber);
@@ -412,7 +423,6 @@
       @media (max-width: 640px) {
         .cards {
           grid-template-columns: 1fr;
-          overflow-y: auto;
         }
         .crt-shell {
           border-radius: 10px;
@@ -441,7 +451,7 @@
           </div>
           <div class="topbar-right">
             <div>SOPHOMORE &nbsp;2024–2025</div>
-            <div>MATLAB · JAVA · JS</div>
+            <div>MATLAB · JAVA · PYTHON · JS · C</div>
             <div class="online">● ONLINE</div>
           </div>
         </div>
@@ -449,16 +459,12 @@
         <div class="prompt">
           root@a1rer:~$
           <span class="cmd">ls ./projects --verbose --open-on-click</span>
-          &nbsp;&nbsp;[3 entries]
+          &nbsp;&nbsp;[11 entries]
         </div>
 
         <div class="cards">
-          <a
-            class="card"
-            href="https://github.com/A1RER/Radar_Proj"
-            target="_blank"
-            rel="noopener"
-          >
+          <!-- 01 -->
+          <a class="card" href="https://github.com/A1RER/Radar_Proj" target="_blank" rel="noopener">
             <div class="card-num">01</div>
             <div class="card-badge">RESEARCH PROJECT</div>
             <span class="card-icon">📡</span>
@@ -467,49 +473,38 @@
             <div class="card-desc">
               5G通感一体化雷达成像系统。<br />
               ISAR成像链路 · PSO优化<br />
-              Kalman滤波追踪 · ML分类<br />
-              MATLAB完整仿真实现。
+              Kalman滤波追踪 · ML分类
             </div>
             <div class="card-tags">
               <span class="tag">MATLAB</span>
               <span class="tag">ISAR</span>
-              <span class="tag">PSO</span>
               <span class="tag">5G ISAC</span>
             </div>
             <div class="card-open">OPEN ↗</div>
           </a>
 
-          <a
-            class="card"
-            href="https://github.com/A1RER"
-            target="_blank"
-            rel="noopener"
-          >
+          <!-- 02 -->
+          <a class="card" href="https://github.com/A1RER/particle_effects_web" target="_blank" rel="noopener">
             <div class="card-num">02</div>
             <div class="card-badge">CREATIVE / FRONTEND</div>
             <span class="card-icon">✋</span>
             <div class="card-title">手势粒子特效</div>
             <div class="card-title-en">GESTURE PARTICLE FX</div>
             <div class="card-desc">
-              MediaPipe实时追踪21点<br />
-              手部关键点，5指尖各自<br />
-              驱动独立粒子流场，<br />
+              MediaPipe实时追踪21点手部关键点，<br />
+              5指尖驱动独立粒子流场，<br />
               Canvas 2D · 60fps运行。
             </div>
             <div class="card-tags">
               <span class="tag">MEDIAPIPE</span>
               <span class="tag">CANVAS 2D</span>
-              <span class="tag">JAVASCRIPT</span>
+              <span class="tag">JS</span>
             </div>
             <div class="card-open">OPEN ↗</div>
           </a>
 
-          <a
-            class="card"
-            href="https://github.com/A1RER"
-            target="_blank"
-            rel="noopener"
-          >
+          <!-- 03 -->
+          <a class="card" href="https://github.com/A1RER/book_management-system" target="_blank" rel="noopener">
             <div class="card-num">03</div>
             <div class="card-badge">ENGINEERING PROJECT</div>
             <span class="card-icon">📚</span>
@@ -517,15 +512,171 @@
             <div class="card-title-en">LIBRARY MGMT SYS</div>
             <div class="card-desc">
               Java多线程并发借阅控制，<br />
-              ReentrantLock保证原子性，<br />
               MySQL持久化 · Swing GUI<br />
               双角色权限 · 完整CRUD。
             </div>
             <div class="card-tags">
               <span class="tag">JAVA</span>
               <span class="tag">MYSQL</span>
-              <span class="tag">THREADING</span>
               <span class="tag">SWING</span>
+            </div>
+            <div class="card-open">OPEN ↗</div>
+          </a>
+
+          <!-- 04 -->
+          <a class="card" href="../cyberpunk_city/cyberpunk_city.html" target="_blank" rel="noopener">
+            <div class="card-num">04</div>
+            <div class="card-badge">CREATIVE / FRONTEND</div>
+            <span class="card-icon">🌃</span>
+            <div class="card-title">赛博朋克城市</div>
+            <div class="card-title-en">NEO CITY // GEN</div>
+            <div class="card-desc">
+              Canvas 2D程序化城市生成，<br />
+              霓虹灯光 · 粒子雨效果<br />
+              鼠标交互驱动粒子流场。
+            </div>
+            <div class="card-tags">
+              <span class="tag">CANVAS 2D</span>
+              <span class="tag">JS</span>
+              <span class="tag">GENERATIVE</span>
+            </div>
+            <div class="card-open">OPEN ↗</div>
+          </a>
+
+          <!-- 05 -->
+          <a class="card" href="https://github.com/A1RER/algorithm-ai-practice" target="_blank" rel="noopener">
+            <div class="card-num">05</div>
+            <div class="card-badge">AI / ALGORITHM</div>
+            <span class="card-icon">🧠</span>
+            <div class="card-title">算法与AI实践</div>
+            <div class="card-title-en">ALGORITHM & AI PRACTICE</div>
+            <div class="card-desc">
+              算法与AI实践项目集合，<br />
+              涵盖经典算法与人工智能<br />
+              实战练习。
+            </div>
+            <div class="card-tags">
+              <span class="tag">PYTHON</span>
+              <span class="tag">AI</span>
+              <span class="tag">ALGORITHM</span>
+            </div>
+            <div class="card-open">OPEN ↗</div>
+          </a>
+
+          <!-- 06 -->
+          <a class="card" href="https://github.com/A1RER/AIGC-Learning-15weeks" target="_blank" rel="noopener">
+            <div class="card-num">06</div>
+            <div class="card-badge">AI / LEARNING</div>
+            <span class="card-icon">🤖</span>
+            <div class="card-title">AIGC学习</div>
+            <div class="card-title-en">AIGC LEARNING · 15 WEEKS</div>
+            <div class="card-desc">
+              15周AIGC系统学习计划，<br />
+              涵盖生成式AI技术栈<br />
+              与实践项目。
+            </div>
+            <div class="card-tags">
+              <span class="tag">PYTHON</span>
+              <span class="tag">AIGC</span>
+              <span class="tag">LEARNING</span>
+            </div>
+            <div class="card-open">OPEN ↗</div>
+          </a>
+
+          <!-- 07 -->
+          <a class="card" href="https://github.com/A1RER/SFMSimulator" target="_blank" rel="noopener">
+            <div class="card-num">07</div>
+            <div class="card-badge">SIMULATION</div>
+            <span class="card-icon">🚶</span>
+            <div class="card-title">社会力模型仿真</div>
+            <div class="card-title-en">SOCIAL FORCE MODEL SIM</div>
+            <div class="card-desc">
+              Social Force Model算法演示，<br />
+              行人运动仿真与碰撞避让<br />
+              可视化实现。
+            </div>
+            <div class="card-tags">
+              <span class="tag">PYTHON</span>
+              <span class="tag">SFM</span>
+              <span class="tag">SIMULATION</span>
+            </div>
+            <div class="card-open">OPEN ↗</div>
+          </a>
+
+          <!-- 08 -->
+          <a class="card" href="https://github.com/A1RER/signal_system_study" target="_blank" rel="noopener">
+            <div class="card-num">08</div>
+            <div class="card-badge">COURSEWORK</div>
+            <span class="card-icon">📶</span>
+            <div class="card-title">信号与系统</div>
+            <div class="card-title-en">SIGNAL & SYSTEM STUDY</div>
+            <div class="card-desc">
+              信号与系统课程学习，<br />
+              MATLAB与Python代码实现，<br />
+              含学习笔记。
+            </div>
+            <div class="card-tags">
+              <span class="tag">MATLAB</span>
+              <span class="tag">PYTHON</span>
+              <span class="tag">DSP</span>
+            </div>
+            <div class="card-open">OPEN ↗</div>
+          </a>
+
+          <!-- 09 -->
+          <a class="card" href="https://github.com/A1RER/data_structure" target="_blank" rel="noopener">
+            <div class="card-num">09</div>
+            <div class="card-badge">COURSEWORK</div>
+            <span class="card-icon">🔗</span>
+            <div class="card-title">数据结构</div>
+            <div class="card-title-en">DATA STRUCTURE · C LANG</div>
+            <div class="card-desc">
+              CQUPT 2024级数据结构，<br />
+              C语言实现经典数据结构<br />
+              与算法练习。
+            </div>
+            <div class="card-tags">
+              <span class="tag">C</span>
+              <span class="tag">DATA STRUCT</span>
+              <span class="tag">CQUPT</span>
+            </div>
+            <div class="card-open">OPEN ↗</div>
+          </a>
+
+          <!-- 10 -->
+          <a class="card" href="https://github.com/A1RER/lanscanner" target="_blank" rel="noopener">
+            <div class="card-num">10</div>
+            <div class="card-badge">NETWORKING TOOL</div>
+            <span class="card-icon">🔍</span>
+            <div class="card-title">局域网扫描器</div>
+            <div class="card-title-en">LAN SCANNER</div>
+            <div class="card-desc">
+              扫描本地网络IP地址，<br />
+              快速发现局域网内设备<br />
+              Python实现。
+            </div>
+            <div class="card-tags">
+              <span class="tag">PYTHON</span>
+              <span class="tag">NETWORK</span>
+              <span class="tag">TOOL</span>
+            </div>
+            <div class="card-open">OPEN ↗</div>
+          </a>
+
+          <!-- 11 -->
+          <a class="card" href="https://github.com/A1RER/matlabRC-" target="_blank" rel="noopener">
+            <div class="card-num">11</div>
+            <div class="card-badge">MATLAB PROJECT</div>
+            <span class="card-icon">📊</span>
+            <div class="card-title">MATLAB RC</div>
+            <div class="card-title-en">MATLAB RC PROJECT</div>
+            <div class="card-desc">
+              MATLAB项目，<br />
+              数值计算与仿真实验。
+            </div>
+            <div class="card-tags">
+              <span class="tag">MATLAB</span>
+              <span class="tag">SIMULATION</span>
             </div>
             <div class="card-open">OPEN ↗</div>
           </a>
@@ -533,7 +684,7 @@
 
         <div class="bottombar">
           <span
-            >SYS: NOMINAL &nbsp;·&nbsp; 3 PROJECTS &nbsp;·&nbsp; GITHUB:
+            >SYS: NOMINAL &nbsp;·&nbsp; 11 PROJECTS &nbsp;·&nbsp; GITHUB:
             A1RER</span
           >
           <span class="blink">■ READY</span>
