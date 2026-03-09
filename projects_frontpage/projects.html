@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A1RER // SYSTEM DASHBOARD</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050b14;
+            --panel-bg: rgba(12, 22, 38, 0.6);
+            --border-color: #1a365d;
+            --accent-cyan: #00e5ff;
+            --accent-green: #00ffaa;
+            --accent-amber: #ffb000;
+            --text-main: #e0f2fe;
+            --text-muted: #38bdf8;
+            --font-mono: 'Share Tech Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image:
+                linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            min-height: 100vh;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+
+        .sys-title {
+            font-size: 2rem;
+            color: var(--accent-cyan);
+            text-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+            letter-spacing: 2px;
+        }
+
+        .sys-subtitle {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            margin-top: 4px;
+        }
+
+        .sys-status {
+            color: var(--accent-green);
+            font-size: 0.9rem;
+            text-align: right;
+        }
+
+        .sys-status-sub {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .dashboard-grid {
+            width: 100%;
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            .category-sidebar {
+                flex-direction: row !important;
+                flex-wrap: wrap;
+            }
+            .radar-container {
+                display: none;
+            }
+        }
+
+        .category-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .radar-container {
+            width: 150px;
+            height: 150px;
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            margin: 0 auto 2rem;
+        }
+
+        .radar-cross-h {
+            position: absolute;
+            width: 100%;
+            height: 1px;
+            background: rgba(0, 229, 255, 0.2);
+        }
+
+        .radar-cross-v {
+            position: absolute;
+            width: 1px;
+            height: 100%;
+            background: rgba(0, 229, 255, 0.2);
+        }
+
+        .radar-label {
+            color: var(--accent-cyan);
+            font-size: 0.8rem;
+            z-index: 1;
+        }
+
+        @keyframes radarSweep {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .radar-sweep {
+            position: absolute;
+            width: 50%;
+            height: 2px;
+            top: 50%;
+            left: 50%;
+            transform-origin: left center;
+            background: linear-gradient(90deg, var(--accent-cyan), transparent);
+            animation: radarSweep 4s linear infinite;
+            opacity: 0.6;
+        }
+
+        .category-link {
+            display: block;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            border-left: 3px solid var(--border-color);
+            padding: 8px 10px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .category-link:hover,
+        .category-link.active {
+            color: var(--accent-cyan);
+            border-left-color: var(--accent-cyan);
+            background: rgba(0, 229, 255, 0.05);
+        }
+
+        .module-group {
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            border: none;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
+            margin-bottom: 15px;
+            color: var(--text-muted);
+            font-size: 1rem;
+            letter-spacing: 1px;
+        }
+
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .panel-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 1.2rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .panel-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 2px;
+            height: 100%;
+            background: var(--accent-cyan);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .panel-card:hover {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .panel-card:hover::before {
+            opacity: 1;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.8rem;
+            font-size: 0.85rem;
+        }
+
+        .panel-id {
+            color: var(--accent-cyan);
+            background: rgba(0, 229, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 2px;
+        }
+
+        .panel-tag {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .panel-title {
+            font-size: 1.15rem;
+            margin-bottom: 0.3rem;
+            color: #fff;
+            letter-spacing: 0.5px;
+        }
+
+        .panel-title-cn {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.6rem;
+        }
+
+        .panel-desc {
+            font-size: 0.75rem;
+            color: rgba(224, 242, 254, 0.5);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .panel-tech {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .tech-tag {
+            border: 1px solid var(--border-color);
+            padding: 1px 6px;
+            border-radius: 2px;
+            font-size: 0.7rem;
+            transition: all 0.2s;
+        }
+
+        .panel-card:hover .tech-tag {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .hud-meter {
+            width: 100%;
+            height: 4px;
+            background: #0f1c2e;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .hud-fill {
+            height: 100%;
+            background: var(--accent-cyan);
+            box-shadow: 0 0 8px var(--accent-cyan);
+            transition: width 0.6s ease;
+        }
+
+        .hud-fill.green {
+            background: var(--accent-green);
+            box-shadow: 0 0 8px var(--accent-green);
+        }
+
+        .hud-fill.amber {
+            background: var(--accent-amber);
+            box-shadow: 0 0 8px var(--accent-amber);
+        }
+
+        .panel-open {
+            position: absolute;
+            top: 1.2rem;
+            right: 1.2rem;
+            font-size: 0.7rem;
+            color: var(--accent-amber);
+            text-shadow: 0 0 6px var(--accent-amber);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .panel-card:hover .panel-open {
+            opacity: 1;
+        }
+
+        /* corner brackets */
+        .corner {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border: 1px solid transparent;
+        }
+        .corner-tl { top: -1px; left: -1px; border-top-color: var(--text-muted); border-left-color: var(--text-muted); }
+        .corner-br { bottom: -1px; right: -1px; border-bottom-color: var(--text-muted); border-right-color: var(--text-muted); }
+        .panel-card:hover .corner-tl { border-top-color: var(--accent-cyan); border-left-color: var(--accent-cyan); }
+        .panel-card:hover .corner-br { border-bottom-color: var(--accent-cyan); border-right-color: var(--accent-cyan); }
+
+        /* footer */
+        .footer-bar {
+            width: 100%;
+            max-width: 1200px;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+        .blink {
+            animation: blink 1.3s step-end infinite;
+            color: var(--accent-green);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <div class="sys-title">A1RER // HUD</div>
+            <div class="sys-subtitle">CHUYUAN &middot; CQUPT COMMS ENG &middot; CHONGQING CN</div>
+        </div>
+        <div class="sys-status">
+            SYS.ONLINE ... [OP_MODE: DEV]
+            <div class="sys-status-sub">MATLAB &middot; JAVA &middot; PYTHON &middot; JS &middot; C</div>
+        </div>
+    </header>
+
+    <div class="dashboard-grid">
+        <div class="category-sidebar">
+            <div class="radar-container">
+                <div class="radar-cross-h"></div>
+                <div class="radar-cross-v"></div>
+                <div class="radar-sweep"></div>
+                <div class="radar-label">RADAR ACTIVE</div>
+            </div>
+
+            <a class="category-link active" href="#sec-algo">[A] ALGORITHMS & AI</a>
+            <a class="category-link" href="#sec-signal">[B] SIGNAL & SYSTEM</a>
+            <a class="category-link" href="#sec-eng">[C] ENGINEERING</a>
+            <a class="category-link" href="#sec-creative">[D] CREATIVE FX</a>
+        </div>
+
+        <div class="main-content">
+
+            <!-- A: ALGORITHMS & AI -->
+            <div class="module-group" id="sec-algo">
+                <div class="section-header">TARGET_LOCK: ALGORITHMS & AI</div>
+                <div class="module-grid">
+                    <a class="panel-card" href="https://github.com/A1RER/algorithm-ai-practice" target="_blank" rel="noopener">
+                        <div class="corner corner-tl"></div><div class="corner corner-br"></div>
+                        <div class="panel-open">OPEN &#8599;</div>
+                        <div class="panel-header"><span class="panel-id">05</span><span class="panel-tag">AI / ALGO</span></div>
+                        <div class="panel-title">ALGORITHM & AI PRACTICE</div>
+                        <div class="panel-title-cn">算法与AI实践</div>
+                        <div class="panel-desc">算法与AI实践项目集合，涵盖经典算法与人工智能实战练习。</div>
+                        <div class="panel-tech">
+                            <span class="tech-tag">PYTHON</span>
+                            <span class="tech-tag">AI</span>
+                            <span class="tech-tag">ALGORITHM</span>
+                        </div>
+                        <div class="hud-meter"><div class="hud-fill" style="width: 85%"></div></div>
+                    </a>
+                    <a class="panel-card" href="https://github.com/A1RER/AIGC-Learning-15weeks" target="_blank" rel="noopener">
+                        <div class="corner corner-tl"></div><div class="corner corner-br"></div>
+                        <div class="panel-open">OPEN &#8599;</div>
+                        <div class="panel-header"><span class="panel-id">06</span><span class="panel-tag">AI / LEARNING</span></div>
+                        <div class="panel-title">AIGC LEARNING 15 WEEKS</div>
+                        <div class="panel-title-cn">AIGC学习</div>
+                        <div class="panel-desc">15周AIGC系统学习计划，涵盖生成式AI技术栈与实践项目。</div>
+                        <div class="panel-tech">
+                            <span class="tech-tag">PYTHON</span>
+                            <span class="tech-tag">AIGC</span>
+                        </div>
+                        <div class="hud-meter"><div class="hud-fill" style="width: 60%"></div></div>
+                    </a>
+                    <a class="panel-card" href="https://github.com/A1RER/SFMSimulator" target="_blank" rel="noopener">
+                        <div class="corner corner-tl"></div><div class="corner corner-br"></div>
+                        <div class="panel-open">OPEN &#8599;</div>
+                        <div class="panel-header"><span class="panel-id">07</span><span class="panel-tag">SIMULATION</span></div>
+                        <div class="panel-title">SOCIAL FORCE MODEL SIM</div>
+                        <div class="panel-title-cn">社会力模型仿真</div>
+                        <div class="panel-desc">Social Force Model算法演示，行人运动仿真与碰撞避让可视化实现。</div>
+                        <div class="panel-tech">
+                            <span class="tech-tag">PYTHON</span>
+                            <span class="tech-tag">SFM</span>
+                        </div>
+                        <div class="hud-meter"><div class="hud-fill green" style="width: 100%"></div></div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- B: SIGNAL & SYSTEM -->
+            <div class="module-group" id="sec-signal">
+                <div class="section-header">TARGET_LOCK: SIGNAL & SYSTEM</div>
+                <div class="module-grid">
+                    <a class="panel-card" href="https://github.com/A1RER/Radar_Proj" target="_blank" rel="noopener">
+                        <div class="corner corner-tl"></div><div class="corner corner-br"></div>
+                        <div class="panel-open">OPEN &#8599;</div>
+                        <div class="panel-header"><span class="panel-id">01</span><span class="panel-tag">RESEARCH</span></div>
+                        <div class="panel-title">SKYSENSE 5G / ISAR IMAGING</div>
+                        <div class="panel-title-cn">天眸通感</div>
+                        <div class="panel-desc">5G通感一体化雷达成像系统。ISAR成像链路 &middot; PSO优化 &middot; Kalman滤波追踪 &middot; ML分类</div>
+                        <div class="panel-tech">
+                            <span class="tech-tag">MATLAB</span>
+                            <span class="tech-tag">ISAR</span>
+                            <span class="tech-tag">5G ISAC</span>
+                        </div>
+                        <div class="hud-meter"><div class="hud-fill" style="width: 90%"></div></div>
+                    </a>
+                    <a class="panel-card" href="https://github.com/A1RER/signal_system_study" target="_blank" rel="noopener">
+                        <div class="corner corner-tl"></div><div class="corner corner-br"></div>
+                        <div class="panel-open">OPEN &#8599;</div>
+                        <div class="panel-header"><span class="panel-id">08</span><span class="panel-tag">COURSEWORK</span></div>
+                        <div class="panel-title">SIGNAL & SYSTEM STUDY</div>
+                        <div class="panel-title-cn">信号与系统</div>
+                        <div class="panel-desc">信号与系统课程学习，MATLAB与Python代码实现，含学习笔记。</div>
+                        <div class="panel-tech">
+                            <span class="tech-tag">MATLAB</span>
+                            <span class="tech-tag">PYTHON</span>
+                            <span class="tech-tag">DSP</span>
+                        </div>
+                        <div class="hud-meter"><div class="hud-fill" style="width: 75%"></div></div>
+                    </a>
+                    <a class="panel-card" href="https://github.com/A1RER/matlabRC-" target="_blank" rel="noopener">
+                        <div class="corner corner-tl"></div><div class="corner corner-br"></div>
+                        <div class="panel-open">OPEN &#8599;</div>
+                        <div class="panel-header"><span class="panel-id">11</span><span class="panel-tag">MATLAB PROJECT</span></div>
+                        <div class="panel-title">MATLAB RC</div>
+                        <div class="panel-title-cn">MATLAB RC项目</div>
+                        <div class="panel-desc">MATLAB项目，数值计算与仿真实验。</div>
+                        <div class="panel-tech">
+                            <span class="tech-tag">MATLAB</span>
+                            <span class="tech-tag">SIMULATION</span>
+                        </div>
+                        <div class="hud-meter"><div class="hud-fill amber" style="width: 50%"></div></div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- C: ENGINEERING -->
+            <div class="module-group" id="sec-eng">
+                <div class="section-header">TARGET_LOCK: ENGINEERING</div>
+                <div class="module-grid">
+                    <a class="panel-card" href="https://github.com/A1RER/book_management-system" target="_blank" rel="noopener">
+                        <div class="corner corner-tl"></div><div class="corner corner-br"></div>
+                        <div class="panel-open">OPEN &#8599;</div>
+                        <div class="panel-header"><span class="panel-id">03</span><span class="panel-tag">ENGINEERING</span></div>
+                        <div class="panel-title">LIBRARY MGMT SYS</div>
+                        <div class="panel-title-cn">图书管理系统</div>
+                        <div class="panel-desc">Java多线程并发借阅控制，MySQL持久化 &middot; Swing GUI &middot; 双角色权限 &middot; 完整CRUD。</div>
+                        <div class="panel-tech">
+                            <span class="tech-tag">JAVA</span>
+                            <span class="tech-tag">MYSQL</span>
+                            <span class="tech-tag">SWING</span>
+                        </div>
+                        <div class="hud-meter"><div class="hud-fill green" style="width: 100%"></div></div>
+                    </a>
+                    <a class="panel-card" href="https://github.com/A1RER/data_structure" target="_blank" rel="noopener">
+                        <div class="corner corner-tl"></div><div class="corner corner-br"></div>
+                        <div class="panel-open">OPEN &#8599;</div>
+                        <div class="panel-header"><span class="panel-id">09</span><span class="panel-tag">COURSEWORK</span></div>
+                        <div class="panel-title">DATA STRUCTURE / C LANG</div>
+                        <div class="panel-title-cn">数据结构</div>
+                        <div class="panel-desc">CQUPT 2024级数据结构，C语言实现经典数据结构与算法练习。</div>
+                        <div class="panel-tech">
+                            <span class="tech-tag">C</span>
+                            <span class="tech-tag">DATA STRUCT</span>
+                            <span class="tech-tag">CQUPT</span>
+                        </div>
+                        <div class="hud-meter"><div class="hud-fill" style="width: 80%"></div></div>
+                    </a>
+                    <a class="panel-card" href="https://github.com/A1RER/lanscanner" target="_blank" rel="noopener">
+                        <div class="corner corner-tl"></div><div class="corner corner-br"></div>
+                        <div class="panel-open">OPEN &#8599;</div>
+                        <div class="panel-header"><span class="panel-id">10</span><span class="panel-tag">NETWORKING TOOL</span></div>
+                        <div class="panel-title">LAN SCANNER</div>
+                        <div class="panel-title-cn">局域网扫描器</div>
+                        <div class="panel-desc">扫描本地网络IP地址，快速发现局域网内设备，Python实现。</div>
+                        <div class="panel-tech">
+                            <span class="tech-tag">PYTHON</span>
+                            <span class="tech-tag">NETWORK</span>
+                        </div>
+                        <div class="hud-meter"><div class="hud-fill green" style="width: 100%"></div></div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- D: CREATIVE FX -->
+            <div class="module-group" id="sec-creative">
+                <div class="section-header">TARGET_LOCK: CREATIVE FX</div>
+                <div class="module-grid">
+                    <a class="panel-card" href="https://github.com/A1RER/particle_effects_web" target="_blank" rel="noopener">
+                        <div class="corner corner-tl"></div><div class="corner corner-br"></div>
+                        <div class="panel-open">OPEN &#8599;</div>
+                        <div class="panel-header"><span class="panel-id">02</span><span class="panel-tag">CREATIVE / FRONTEND</span></div>
+                        <div class="panel-title">GESTURE PARTICLE FX</div>
+                        <div class="panel-title-cn">手势粒子特效</div>
+                        <div class="panel-desc">MediaPipe实时追踪21点手部关键点，5指尖驱动独立粒子流场，Canvas 2D &middot; 60fps运行。</div>
+                        <div class="panel-tech">
+                            <span class="tech-tag">MEDIAPIPE</span>
+                            <span class="tech-tag">CANVAS 2D</span>
+                            <span class="tech-tag">JS</span>
+                        </div>
+                        <div class="hud-meter"><div class="hud-fill green" style="width: 100%"></div></div>
+                    </a>
+                    <a class="panel-card" href="../cyberpunk_city/cyberpunk_city.html" target="_blank" rel="noopener">
+                        <div class="corner corner-tl"></div><div class="corner corner-br"></div>
+                        <div class="panel-open">OPEN &#8599;</div>
+                        <div class="panel-header"><span class="panel-id">04</span><span class="panel-tag">CREATIVE / FRONTEND</span></div>
+                        <div class="panel-title">NEO CITY // GEN</div>
+                        <div class="panel-title-cn">赛博朋克城市</div>
+                        <div class="panel-desc">Canvas 2D程序化城市生成，霓虹灯光 &middot; 粒子雨效果 &middot; 鼠标交互驱动粒子流场。</div>
+                        <div class="panel-tech">
+                            <span class="tech-tag">CANVAS 2D</span>
+                            <span class="tech-tag">JS</span>
+                            <span class="tech-tag">GENERATIVE</span>
+                        </div>
+                        <div class="hud-meter"><div class="hud-fill green" style="width: 100%"></div></div>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="footer-bar">
+        <span>SYS: NOMINAL &middot; 11 PROJECTS &middot; GITHUB: A1RER</span>
+        <span class="blink">&#9632; READY</span>
+    </div>
+
+    <script>
+        // Smooth scroll for sidebar links & active state
+        document.querySelectorAll('.category-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.category-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

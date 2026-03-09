@@ -1,0 +1,1489 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>NEO CITY // GEN</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: #000;
+        overflow: hidden;
+        font-family: "Courier New", monospace;
+        cursor: crosshair;
+      }
+      canvas {
+        display: block;
+      }
+
+      #hud {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        z-index: 10;
+      }
+
+      /* scanlines overlay */
+      #hud::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          rgba(0, 0, 0, 0.08) 2px,
+          rgba(0, 0, 0, 0.08) 4px
+        );
+      }
+
+      #title {
+        position: fixed;
+        top: 24px;
+        left: 28px;
+        color: #0ff;
+        font-size: 11px;
+        letter-spacing: 0.25em;
+        text-shadow:
+          0 0 10px #0ff,
+          0 0 30px #0ff4;
+        line-height: 1.8;
+      }
+      #title span {
+        color: #ff2d78;
+        text-shadow: 0 0 10px #ff2d78;
+      }
+
+      #stats {
+        position: fixed;
+        top: 24px;
+        right: 28px;
+        text-align: right;
+        color: rgba(0, 255, 255, 0.4);
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        line-height: 2;
+      }
+
+      #controls {
+        position: fixed;
+        bottom: 28px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 10px;
+        pointer-events: all;
+        flex-wrap: wrap;
+        justify-content: center;
+        max-width: 90vw;
+      }
+      .btn {
+        background: rgba(0, 0, 0, 0.7);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        color: rgba(0, 255, 255, 0.7);
+        padding: 7px 18px;
+        font-family: "Courier New", monospace;
+        font-size: 10px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.2s;
+        clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+      }
+      .btn:hover {
+        background: rgba(0, 255, 255, 0.1);
+        border-color: #0ff;
+        color: #0ff;
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+      }
+      .btn.active {
+        background: rgba(0, 255, 255, 0.15);
+        border-color: #0ff;
+        color: #0ff;
+      }
+      .btn.danger {
+        border-color: rgba(255, 45, 120, 0.3);
+        color: rgba(255, 45, 120, 0.7);
+      }
+      .btn.danger:hover {
+        background: rgba(255, 45, 120, 0.1);
+        border-color: #ff2d78;
+        color: #ff2d78;
+        box-shadow: 0 0 15px rgba(255, 45, 120, 0.3);
+      }
+
+      #log {
+        position: fixed;
+        bottom: 80px;
+        left: 28px;
+        color: rgba(0, 255, 255, 0.25);
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        line-height: 1.8;
+        max-width: 240px;
+      }
+
+      /* corner brackets */
+      .corner {
+        position: fixed;
+        width: 30px;
+        height: 30px;
+        border-color: rgba(0, 255, 255, 0.25);
+        border-style: solid;
+        border-width: 0;
+      }
+      .tl {
+        top: 12px;
+        left: 12px;
+        border-top-width: 1px;
+        border-left-width: 1px;
+      }
+      .tr {
+        top: 12px;
+        right: 12px;
+        border-top-width: 1px;
+        border-right-width: 1px;
+      }
+      .bl {
+        bottom: 12px;
+        left: 12px;
+        border-bottom-width: 1px;
+        border-left-width: 1px;
+      }
+      .br {
+        bottom: 12px;
+        right: 12px;
+        border-bottom-width: 1px;
+        border-right-width: 1px;
+      }
+
+      /* Glitch effect for title */
+      @keyframes glitch {
+        0%,
+        95%,
+        100% {
+          transform: translate(0);
+        }
+        96% {
+          transform: translate(-2px, 1px);
+        }
+        97% {
+          transform: translate(2px, -1px);
+        }
+        98% {
+          transform: translate(-1px, -1px);
+        }
+        99% {
+          transform: translate(1px, 1px);
+        }
+      }
+      #title {
+        animation: glitch 8s infinite;
+      }
+
+      /* FPS counter */
+      #fps {
+        position: fixed;
+        bottom: 28px;
+        right: 28px;
+        color: rgba(0, 255, 255, 0.3);
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c"></canvas>
+    <div id="hud">
+      <div class="corner tl"></div>
+      <div class="corner tr"></div>
+      <div class="corner bl"></div>
+      <div class="corner br"></div>
+      <div id="title">
+        NEO CITY // <span>GEN_v3.0</span><br />
+        SECTOR: <span id="sector">0x00FF</span><br />
+        STATUS: <span id="status">ONLINE</span>
+      </div>
+      <div id="stats">
+        BLDG: <span id="bcount">0</span><br />
+        VEH: <span id="vcount">0</span><br />
+        DRONE: <span id="dcount">0</span><br />
+        <span id="time-label">TIME: DAY</span>
+      </div>
+      <div id="log"></div>
+      <div id="fps">FPS: --</div>
+    </div>
+    <div id="controls">
+      <button class="btn danger" id="btn-regen">⟳ REGEN</button>
+      <button class="btn" id="btn-night">◑ NIGHT</button>
+      <button class="btn" id="btn-rain">≋ RAIN</button>
+      <button class="btn" id="btn-zoom">⊕ ZOOM</button>
+      <button class="btn" id="btn-drone">⬡ DRONE</button>
+      <button class="btn" id="btn-thunder">⚡ STORM</button>
+      <button class="btn" id="btn-neon">✦ NEON+</button>
+      <button class="btn" id="btn-traffic">▶ TRAFFIC</button>
+    </div>
+
+    <script>
+      // ===== NOISE =====
+      const noise = (() => {
+        const p = [...Array(256)].map((_, i) => i);
+        for (let i = 255; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [p[i], p[j]] = [p[j], p[i]];
+        }
+        const pm = [...p, ...p];
+        const f = (t) => t * t * t * (t * (t * 6 - 15) + 10);
+        const l = (a, b, t) => a + t * (b - a);
+        const g = (h, x, y) => {
+          const v = h & 3;
+          const u = v < 2 ? x : y,
+            w = v < 2 ? y : x;
+          return (v & 1 ? -u : u) + (v & 2 ? -w : w);
+        };
+        return (x, y) => {
+          const X = Math.floor(x) & 255,
+            Y = Math.floor(y) & 255;
+          x -= Math.floor(x);
+          y -= Math.floor(y);
+          const u = f(x),
+            v = f(y);
+          const a = pm[X] + Y,
+            b = pm[X + 1] + Y;
+          return (
+            (l(
+              l(g(pm[a], x, y), g(pm[b], x - 1, y), u),
+              l(g(pm[a + 1], x, y - 1), g(pm[b + 1], x - 1, y - 1), u),
+              v,
+            ) +
+              1) *
+            0.5
+          );
+        };
+      })();
+
+      // ===== CANVAS =====
+      const canvas = document.getElementById("c");
+      const ctx = canvas.getContext("2d");
+      let W, H, cx, cy;
+
+      const resize = () => {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+        cx = W / 2;
+        cy = H * 0.38;
+      };
+      resize();
+      let resizeTimer;
+      window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          resize();
+          generate();
+        }, 150);
+      });
+
+      // ===== CONFIG =====
+      const TILE = 48;
+      const GRID = 18;
+      let isNight = false;
+      let rainOn = false;
+      let thunderOn = false;
+      let neonBoost = false;
+      let trafficMode = false;
+      let zoom = 1;
+      let seed = Math.random() * 1000;
+
+      // Camera pan with mouse
+      let camOffX = 0,
+        camOffY = 0;
+      let isDragging = false;
+      let dragStartX, dragStartY, camStartX, camStartY;
+
+      canvas.addEventListener("mousedown", (e) => {
+        if (e.button === 2 || (e.button === 0 && e.shiftKey)) {
+          isDragging = true;
+          dragStartX = e.clientX;
+          dragStartY = e.clientY;
+          camStartX = camOffX;
+          camStartY = camOffY;
+          canvas.style.cursor = "grabbing";
+          e.preventDefault();
+        }
+      });
+      canvas.addEventListener("mousemove", (e) => {
+        if (isDragging) {
+          camOffX = camStartX + (e.clientX - dragStartX);
+          camOffY = camStartY + (e.clientY - dragStartY);
+        }
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+      });
+      canvas.addEventListener("mouseup", () => {
+        isDragging = false;
+        canvas.style.cursor = "crosshair";
+      });
+      canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+
+      // Scroll to zoom
+      canvas.addEventListener(
+        "wheel",
+        (e) => {
+          e.preventDefault();
+          if (e.deltaY < 0) zoom = Math.min(2.0, zoom * 1.1);
+          else zoom = Math.max(0.4, zoom / 1.1);
+          addLog("ZOOM: " + zoom.toFixed(2) + "x");
+        },
+        { passive: false },
+      );
+
+      let mouseX = W / 2,
+        mouseY = H / 2;
+
+      // ===== ISO HELPERS =====
+      const iso = (gx, gy) => ({
+        x: cx + camOffX + (gx - gy) * (TILE / 2) * zoom,
+        y: cy + camOffY + (gx + gy) * (TILE / 4) * zoom,
+      });
+
+      // ===== CITY DATA =====
+      let buildings = [];
+      let vehicles = [];
+      let raindrops = [];
+      let drones = [];
+      let lightning = [];
+      let particles = [];
+      let hologram = null;
+      let animT = 0;
+
+      // color palettes
+      const NEON = [
+        "#ff2d78",
+        "#0ff",
+        "#b44fff",
+        "#ff9900",
+        "#00ff88",
+        "#ff4400",
+      ];
+      const randNeon = () => NEON[Math.floor(Math.random() * NEON.length)];
+
+      // ===== GENERATION =====
+      function generate() {
+        seed = Math.random() * 9999;
+        buildings = [];
+        vehicles = [];
+        drones = [];
+
+        for (let gx = 0; gx < GRID; gx++) {
+          for (let gy = 0; gy < GRID; gy++) {
+            const nx = (gx / GRID) * 3 + seed * 0.01;
+            const ny = (gy / GRID) * 3 + seed * 0.01;
+            const n = noise(nx, ny);
+            const distCenter = Math.sqrt(
+              ((gx - GRID / 2) / (GRID / 2)) ** 2 +
+                ((gy - GRID / 2) / (GRID / 2)) ** 2,
+            );
+            const density = Math.max(0, n - distCenter * 0.3);
+
+            if (density < 0.18) continue;
+
+            const maxH = Math.floor(density * 14) + 1;
+            const h = Math.max(1, Math.floor(Math.random() * maxH));
+            const w = 0.65 + Math.random() * 0.3;
+            const d = 0.65 + Math.random() * 0.3;
+
+            const type =
+              h > 9 ? "mega" : h > 5 ? "tower" : h > 2 ? "mid" : "low";
+
+            const neonColor = Math.random() < 0.55 ? randNeon() : null;
+            const hasAntenna = h > 7 && Math.random() < 0.6;
+            const hasHelipad = h > 10 && Math.random() < 0.4;
+            const windowRows = Math.max(2, h - 1);
+            const hasBillboard = h > 4 && Math.random() < 0.25;
+
+            buildings.push({
+              gx,
+              gy,
+              h,
+              w,
+              d,
+              type,
+              neonColor,
+              hasAntenna,
+              hasHelipad,
+              hasBillboard,
+              billboardColor: randNeon(),
+              windowRows,
+              windowPattern: Array.from(
+                { length: windowRows * 4 },
+                () => Math.random() < 0.65,
+              ),
+              animOffset: Math.random() * Math.PI * 2,
+              sortKey: gx + gy,
+            });
+          }
+        }
+
+        buildings.sort((a, b) => a.sortKey - b.sortKey);
+
+        // vehicles
+        const vehicleCount = trafficMode ? 30 : 12;
+        for (let i = 0; i < vehicleCount; i++) {
+          spawnVehicle();
+        }
+
+        // drones
+        for (let i = 0; i < 5; i++) {
+          spawnDrone();
+        }
+
+        // hologram
+        hologram = {
+          x: cx + camOffX,
+          y: cy + camOffY - 60 * zoom,
+          phase: 0,
+          color: randNeon(),
+        };
+
+        updateStats();
+        addLog(
+          "CITY GENERATED // SECTOR 0x" +
+            Math.floor(seed).toString(16).toUpperCase().padStart(4, "0"),
+        );
+        document.getElementById("sector").textContent =
+          "0x" + Math.floor(seed).toString(16).toUpperCase().padStart(4, "0");
+      }
+
+      function spawnVehicle() {
+        const edge = Math.floor(Math.random() * 4);
+        let gx, gy, dx, dy;
+        const speed = trafficMode
+          ? 0.02 + Math.random() * 0.03
+          : 0.03 + Math.random() * 0.02;
+        if (edge === 0) {
+          gx = 0;
+          gy = Math.random() * GRID;
+          dx = speed;
+          dy = 0;
+        } else if (edge === 1) {
+          gx = GRID;
+          gy = Math.random() * GRID;
+          dx = -speed;
+          dy = 0;
+        } else if (edge === 2) {
+          gx = Math.random() * GRID;
+          gy = 0;
+          dx = 0;
+          dy = speed;
+        } else {
+          gx = Math.random() * GRID;
+          gy = GRID;
+          dx = 0;
+          dy = -speed;
+        }
+
+        // Flying vehicle? (some hover above ground)
+        const isFlying = Math.random() < 0.3;
+        vehicles.push({
+          gx,
+          gy,
+          dx,
+          dy,
+          color: randNeon(),
+          size: 2 + Math.random() * 2,
+          isFlying,
+          flyHeight: isFlying ? 20 + Math.random() * 60 : 0,
+          tailLength: 6 + Math.random() * 6,
+        });
+      }
+
+      function spawnDrone() {
+        drones.push({
+          gx: Math.random() * GRID,
+          gy: Math.random() * GRID,
+          altitude: 40 + Math.random() * 80,
+          targetGx: Math.random() * GRID,
+          targetGy: Math.random() * GRID,
+          speed: 0.01 + Math.random() * 0.02,
+          color: randNeon(),
+          blinkPhase: Math.random() * Math.PI * 2,
+          scanRadius: 0,
+          scanning: false,
+        });
+      }
+
+      // ===== DRAWING =====
+      function drawGround() {
+        for (let gx = 0; gx <= GRID; gx++) {
+          for (let gy = 0; gy <= GRID; gy++) {
+            const a = iso(gx, gy);
+            const b = iso(gx + 1, gy);
+            const c = iso(gx, gy + 1);
+            const alpha = isNight ? 0.12 : 0.07;
+            ctx.strokeStyle = `rgba(0,255,255,${alpha})`;
+            ctx.lineWidth = 0.5;
+            if (gx < GRID) {
+              ctx.beginPath();
+              ctx.moveTo(a.x, a.y);
+              ctx.lineTo(b.x, b.y);
+              ctx.stroke();
+            }
+            if (gy < GRID) {
+              ctx.beginPath();
+              ctx.moveTo(a.x, a.y);
+              ctx.lineTo(c.x, c.y);
+              ctx.stroke();
+            }
+          }
+        }
+
+        // road highlights (every 3 tiles)
+        for (let g = 0; g <= GRID; g += 3) {
+          const alpha = isNight ? 0.25 : 0.1;
+          ctx.strokeStyle = `rgba(0,255,255,${alpha})`;
+          ctx.lineWidth = isNight ? 1.5 : 0.8;
+          const a = iso(g, 0),
+            b = iso(g, GRID);
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+          const c = iso(0, g),
+            d = iso(GRID, g);
+          ctx.beginPath();
+          ctx.moveTo(c.x, c.y);
+          ctx.lineTo(d.x, d.y);
+          ctx.stroke();
+        }
+
+        // Animated road markings (NEW: street lights along roads at night)
+        if (isNight) {
+          for (let g = 0; g <= GRID; g += 3) {
+            for (let i = 0; i < GRID; i += 1.5) {
+              const pos = iso(g, i);
+              const pulse = 0.3 + 0.2 * Math.sin(animT * 2 + i * 0.5);
+              ctx.fillStyle = `rgba(255,200,100,${pulse * 0.3})`;
+              ctx.beginPath();
+              ctx.arc(pos.x, pos.y, 2 * zoom, 0, Math.PI * 2);
+              ctx.fill();
+
+              const pos2 = iso(i, g);
+              ctx.beginPath();
+              ctx.arc(pos2.x, pos2.y, 2 * zoom, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+        }
+      }
+
+      function drawBuilding(b) {
+        const TH = TILE * zoom;
+        const TW = TILE * zoom;
+        const BH = b.h * TH * 0.55;
+        const bw = b.w * TW * 0.5;
+        const bd = b.d * TW * 0.5;
+
+        const base = iso(b.gx + b.w * 0.5, b.gy + b.d * 0.5);
+
+        // glow under building (night)
+        if (isNight && b.neonColor) {
+          const nMult = neonBoost ? 2.0 : 1.0;
+          const grd = ctx.createRadialGradient(
+            base.x,
+            base.y,
+            0,
+            base.x,
+            base.y,
+            bw * 2.5 * nMult,
+          );
+          grd.addColorStop(0, b.neonColor + (neonBoost ? "44" : "22"));
+          grd.addColorStop(1, "transparent");
+          ctx.fillStyle = grd;
+          ctx.beginPath();
+          ctx.ellipse(
+            base.x,
+            base.y,
+            bw * 2.5 * nMult,
+            bw * 1.2 * nMult,
+            0,
+            0,
+            Math.PI * 2,
+          );
+          ctx.fill();
+        }
+
+        // isometric faces
+        const tl = { x: base.x - bw, y: base.y - BH - bd * 0.5 };
+        const bl2 = { x: base.x - bw, y: base.y - bd * 0.5 };
+        const bm = { x: base.x, y: base.y };
+        const tm = { x: base.x, y: base.y - BH };
+
+        const tr = { x: base.x + bw, y: base.y - BH - bd * 0.5 };
+        const br2 = { x: base.x + bw, y: base.y - bd * 0.5 };
+
+        const tt = { x: base.x, y: base.y - BH - bd };
+
+        const bright = isNight ? 0.9 : 0.7;
+        const leftDark = isNight ? 0.25 : 0.35;
+        const rightDark = isNight ? 0.15 : 0.22;
+
+        // left face
+        ctx.beginPath();
+        ctx.moveTo(tl.x, tl.y);
+        ctx.lineTo(bl2.x, bl2.y);
+        ctx.lineTo(bm.x, bm.y);
+        ctx.lineTo(tm.x, tm.y);
+        ctx.closePath();
+        ctx.fillStyle = buildingColor(b, leftDark);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(0,0,0,0.5)";
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+
+        // right face
+        ctx.beginPath();
+        ctx.moveTo(tm.x, tm.y);
+        ctx.lineTo(bm.x, bm.y);
+        ctx.lineTo(br2.x, br2.y);
+        ctx.lineTo(tr.x, tr.y);
+        ctx.closePath();
+        ctx.fillStyle = buildingColor(b, rightDark);
+        ctx.fill();
+        ctx.stroke();
+
+        // top face
+        ctx.beginPath();
+        ctx.moveTo(tl.x, tl.y);
+        ctx.lineTo(tm.x, tm.y);
+        ctx.lineTo(tr.x, tr.y);
+        ctx.lineTo(tt.x, tt.y);
+        ctx.closePath();
+        ctx.fillStyle = buildingColor(b, bright);
+        ctx.fill();
+        ctx.stroke();
+
+        // windows
+        drawWindows(b, tl, bl2, bm, tm, "left");
+        drawWindows(b, tm, bm, br2, tr, "right");
+
+        // neon strips
+        if (b.neonColor && b.type !== "low") {
+          const nMult = neonBoost ? 2.0 : 1.0;
+          const pulse = 0.6 + 0.4 * Math.sin(animT * 1.5 + b.animOffset);
+          ctx.strokeStyle = b.neonColor;
+          ctx.lineWidth = (isNight ? 1.5 * pulse : 0.8) * nMult;
+          ctx.shadowColor = b.neonColor;
+          ctx.shadowBlur = (isNight ? 8 * pulse : 2) * nMult;
+          const stripY = tl.y + (tm.y - tl.y) * 0.15;
+          ctx.beginPath();
+          ctx.moveTo(tl.x, stripY);
+          ctx.lineTo(tm.x, tm.y + (bm.y - tm.y) * 0.15);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(tm.x, tm.y + (bm.y - tm.y) * 0.15);
+          ctx.lineTo(tr.x, tr.y + (br2.y - tr.y) * 0.15);
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+        }
+
+        // Billboard (NEW)
+        if (b.hasBillboard && b.type !== "low") {
+          const bbPulse = 0.5 + 0.5 * Math.sin(animT * 2 + b.animOffset);
+          const bbY = tl.y + (bl2.y - tl.y) * 0.3;
+          const bbH = (bl2.y - tl.y) * 0.2;
+          const bbAlpha = isNight ? 0.5 + 0.3 * bbPulse : 0.3;
+
+          ctx.fillStyle =
+            b.billboardColor +
+            Math.floor(bbAlpha * 255)
+              .toString(16)
+              .padStart(2, "0");
+          ctx.fillRect(tl.x + 2, bbY, (tm.x - tl.x) * 0.9, bbH);
+
+          if (isNight) {
+            ctx.shadowColor = b.billboardColor;
+            ctx.shadowBlur = 12 * bbPulse;
+            ctx.strokeStyle = b.billboardColor;
+            ctx.lineWidth = 0.5;
+            ctx.strokeRect(tl.x + 2, bbY, (tm.x - tl.x) * 0.9, bbH);
+            ctx.shadowBlur = 0;
+          }
+
+          // Fake text lines on billboard
+          ctx.fillStyle = `rgba(0,0,0,${isNight ? 0.4 : 0.3})`;
+          for (let li = 0; li < 3; li++) {
+            const lineY = bbY + bbH * 0.2 + li * bbH * 0.25;
+            const lineW = (tm.x - tl.x) * (0.3 + Math.random() * 0.4);
+            ctx.fillRect(tl.x + 5, lineY, lineW, 1.5);
+          }
+        }
+
+        // antenna
+        if (b.hasAntenna) {
+          const pulse = 0.5 + 0.5 * Math.sin(animT * 3 + b.animOffset);
+          ctx.strokeStyle = isNight
+            ? `rgba(255,45,120,${0.7 + 0.3 * pulse})`
+            : "rgba(200,50,80,0.6)";
+          ctx.lineWidth = 1;
+          ctx.shadowColor = "#ff2d78";
+          ctx.shadowBlur = isNight ? 6 * pulse : 0;
+          ctx.beginPath();
+          ctx.moveTo(tt.x, tt.y);
+          ctx.lineTo(tt.x, tt.y - 18 * zoom);
+          ctx.stroke();
+          ctx.fillStyle = `rgba(255,45,120,${pulse})`;
+          ctx.beginPath();
+          ctx.arc(tt.x, tt.y - 18 * zoom, 2 * zoom, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+
+        // helipad
+        if (b.hasHelipad) {
+          const hx = tt.x,
+            hy = tt.y - 2;
+          ctx.strokeStyle = isNight
+            ? "rgba(255,153,0,0.8)"
+            : "rgba(255,153,0,0.5)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(hx, hy, 6 * zoom, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.strokeStyle = isNight
+            ? "rgba(255,153,0,0.5)"
+            : "rgba(255,153,0,0.3)";
+          ctx.beginPath();
+          ctx.moveTo(hx - 4 * zoom, hy);
+          ctx.lineTo(hx + 4 * zoom, hy);
+          ctx.moveTo(hx, hy - 4 * zoom);
+          ctx.lineTo(hx, hy + 4 * zoom);
+          ctx.stroke();
+        }
+      }
+
+      function buildingColor(b, brightness) {
+        if (b.type === "mega")
+          return `rgba(${Math.floor(brightness * 28)},${Math.floor(brightness * 32)},${Math.floor(brightness * 45)},1)`;
+        if (b.type === "tower")
+          return `rgba(${Math.floor(brightness * 22)},${Math.floor(brightness * 28)},${Math.floor(brightness * 38)},1)`;
+        return `rgba(${Math.floor(brightness * 35)},${Math.floor(brightness * 32)},${Math.floor(brightness * 40)},1)`;
+      }
+
+      function drawWindows(b, p0, p1, p2, p3, side) {
+        const rows = b.windowRows;
+        const cols = 3;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const t0 = (r + 0.2) / rows,
+              t1 = (r + 0.8) / rows;
+            const s0 = (c + 0.15) / cols,
+              s1 = (c + 0.85) / cols;
+
+            const lerp2 = (a, b, t) => ({
+              x: a.x + (b.x - a.x) * t,
+              y: a.y + (b.y - a.y) * t,
+            });
+            const left0 = lerp2(p0, p1, t0),
+              left1 = lerp2(p0, p1, t1);
+            const right0 = lerp2(p3, p2, t0),
+              right1 = lerp2(p3, p2, t1);
+            const tl = lerp2(left0, right0, s0);
+            const tr2 = lerp2(left0, right0, s1);
+            const bl3 = lerp2(left1, right1, s0);
+            const br3 = lerp2(left1, right1, s1);
+
+            const wIdx =
+              (side === "left" ? 0 : rows * 2) + r * 2 + Math.floor(c / 1.5);
+            const lit = b.windowPattern[wIdx % b.windowPattern.length];
+            if (!lit && !isNight) continue;
+            if (!lit && isNight && Math.random() > 0.002) continue;
+
+            let col;
+            if (lit) {
+              if (isNight) {
+                const hues = [
+                  "rgba(255,220,120,",
+                  "rgba(180,220,255,",
+                  "rgba(255,180,255,",
+                ];
+                const hueIdx = Math.floor(
+                  Math.abs(Math.sin(b.animOffset + r + c)) * 3,
+                );
+                col =
+                  hues[Math.min(hueIdx, hues.length - 1)] +
+                  (0.6 + 0.3 * Math.sin(animT + b.animOffset + r)) +
+                  ")";
+              } else {
+                col = "rgba(200,220,255,0.3)";
+              }
+            }
+
+            if (col) {
+              ctx.fillStyle = col;
+              if (isNight) {
+                ctx.shadowColor = col;
+                ctx.shadowBlur = neonBoost ? 6 : 3;
+              }
+              ctx.beginPath();
+              ctx.moveTo(tl.x, tl.y);
+              ctx.lineTo(tr2.x, tr2.y);
+              ctx.lineTo(br3.x, br3.y);
+              ctx.lineTo(bl3.x, bl3.y);
+              ctx.closePath();
+              ctx.fill();
+              ctx.shadowBlur = 0;
+            }
+          }
+        }
+      }
+
+      function drawVehicles() {
+        // BUG FIX: iterate backwards to safely splice
+        for (let i = vehicles.length - 1; i >= 0; i--) {
+          const v = vehicles[i];
+          v.gx += v.dx;
+          v.gy += v.dy;
+          if (v.gx < -1 || v.gx > GRID + 1 || v.gy < -1 || v.gy > GRID + 1) {
+            vehicles.splice(i, 1);
+            spawnVehicle();
+            continue;
+          }
+          const pos = iso(v.gx, v.gy);
+          const drawY = pos.y - v.flyHeight * zoom;
+
+          ctx.shadowColor = v.color;
+          ctx.shadowBlur = isNight ? 8 : 3;
+          ctx.fillStyle = v.color;
+          ctx.beginPath();
+          ctx.arc(pos.x, drawY, v.size * zoom, 0, Math.PI * 2);
+          ctx.fill();
+
+          // trail
+          const trail = iso(
+            v.gx - v.dx * v.tailLength,
+            v.gy - v.dy * v.tailLength,
+          );
+          const trailY = trail.y - v.flyHeight * zoom;
+
+          // BUG FIX: safely handle hex colors for trail gradient
+          let trailColor;
+          try {
+            const grad = ctx.createLinearGradient(
+              trail.x,
+              trailY,
+              pos.x,
+              drawY,
+            );
+            grad.addColorStop(0, "transparent");
+            grad.addColorStop(1, v.color + (isNight ? "cc" : "66"));
+            trailColor = grad;
+          } catch (e) {
+            trailColor = v.color;
+          }
+          ctx.strokeStyle = trailColor;
+          ctx.lineWidth = v.size * zoom * 0.7;
+          ctx.beginPath();
+          ctx.moveTo(trail.x, trailY);
+          ctx.lineTo(pos.x, drawY);
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+
+          // Flying vehicle altitude indicator
+          if (v.isFlying && isNight) {
+            ctx.strokeStyle = `rgba(0,255,255,0.1)`;
+            ctx.lineWidth = 0.5;
+            ctx.setLineDash([2, 4]);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+            ctx.lineTo(pos.x, drawY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+          }
+        }
+      }
+
+      // ===== DRONES (NEW) =====
+      function drawDrones() {
+        for (const d of drones) {
+          // Move towards target
+          const ddx = d.targetGx - d.gx;
+          const ddy = d.targetGy - d.gy;
+          const dist = Math.sqrt(ddx * ddx + ddy * ddy);
+          if (dist < 0.5) {
+            d.targetGx = Math.random() * GRID;
+            d.targetGy = Math.random() * GRID;
+            // Occasionally scan
+            if (Math.random() < 0.3) {
+              d.scanning = true;
+              d.scanRadius = 0;
+            }
+          }
+          d.gx += (ddx / dist) * d.speed;
+          d.gy += (ddy / dist) * d.speed;
+
+          const pos = iso(d.gx, d.gy);
+          const bobble = Math.sin(animT * 3 + d.blinkPhase) * 3;
+          const drawY = pos.y - d.altitude * zoom + bobble;
+
+          // Scan beam
+          if (d.scanning) {
+            d.scanRadius += 1.5;
+            if (d.scanRadius > 40) {
+              d.scanning = false;
+              d.scanRadius = 0;
+            }
+            const scanAlpha = 0.15 * (1 - d.scanRadius / 40);
+            ctx.strokeStyle = `rgba(0,255,255,${scanAlpha})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.ellipse(
+              pos.x,
+              pos.y,
+              d.scanRadius * zoom,
+              d.scanRadius * zoom * 0.4,
+              0,
+              0,
+              Math.PI * 2,
+            );
+            ctx.stroke();
+
+            // Scan line to ground
+            ctx.strokeStyle = `rgba(0,255,255,${scanAlpha * 2})`;
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(pos.x, drawY);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+          }
+
+          // Drone body
+          const blink = Math.sin(animT * 5 + d.blinkPhase) > 0.3;
+          ctx.shadowColor = blink ? d.color : "#0ff";
+          ctx.shadowBlur = isNight ? 10 : 4;
+          ctx.fillStyle = blink ? d.color : "#0ff";
+          ctx.beginPath();
+          ctx.arc(pos.x, drawY, 2.5 * zoom, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Rotor effect
+          const rotorAngle = animT * 15 + d.blinkPhase;
+          ctx.strokeStyle = `rgba(0,255,255,${isNight ? 0.3 : 0.15})`;
+          ctx.lineWidth = 0.5;
+          for (let r = 0; r < 4; r++) {
+            const a = rotorAngle + (r * Math.PI) / 2;
+            ctx.beginPath();
+            ctx.moveTo(pos.x, drawY);
+            ctx.lineTo(
+              pos.x + Math.cos(a) * 5 * zoom,
+              drawY + Math.sin(a) * 2 * zoom,
+            );
+            ctx.stroke();
+          }
+          ctx.shadowBlur = 0;
+        }
+      }
+
+      function drawHologram() {
+        if (!hologram) return;
+        hologram.phase += 0.02;
+        hologram.x = cx + camOffX;
+        hologram.y = cy + camOffY - 60 * zoom;
+
+        const pulse = 0.5 + 0.5 * Math.sin(hologram.phase);
+        const h = 80 * zoom * (0.85 + 0.15 * pulse);
+
+        ctx.save();
+        ctx.translate(hologram.x, hologram.y);
+
+        // rotating rings
+        for (let i = 0; i < 3; i++) {
+          const angle = hologram.phase * (1 + i * 0.3) + (i * Math.PI) / 3;
+          const rx = 20 * zoom * (1 + i * 0.3);
+          const ry = 8 * zoom * (1 + i * 0.3);
+          ctx.strokeStyle = `rgba(0,255,255,${(0.2 + 0.15 * pulse) / (i + 1)})`;
+          ctx.lineWidth = 1;
+          ctx.shadowColor = "#0ff";
+          ctx.shadowBlur = 4;
+          ctx.save();
+          ctx.rotate(angle);
+          ctx.beginPath();
+          ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // vertical beam
+        const beamGrad = ctx.createLinearGradient(0, -h, 0, 0);
+        beamGrad.addColorStop(0, "transparent");
+        beamGrad.addColorStop(0.5, `rgba(0,255,255,${0.15 * pulse})`);
+        beamGrad.addColorStop(1, `rgba(0,255,255,0.3)`);
+        ctx.fillStyle = beamGrad;
+        ctx.beginPath();
+        ctx.moveTo(-12 * zoom, 0);
+        ctx.lineTo(12 * zoom, 0);
+        ctx.lineTo(4 * zoom, -h);
+        ctx.lineTo(-4 * zoom, -h);
+        ctx.closePath();
+        ctx.fill();
+
+        // NEW: hologram text glitch
+        ctx.fillStyle = `rgba(0,255,255,${0.3 + 0.2 * pulse})`;
+        ctx.font = `${10 * zoom}px 'Courier New'`;
+        ctx.textAlign = "center";
+        const glitchOff = Math.random() < 0.05 ? (Math.random() - 0.5) * 6 : 0;
+        ctx.fillText("NEO CITY", glitchOff, -h * 0.6);
+        ctx.fillStyle = `rgba(255,45,120,${0.2 + 0.2 * pulse})`;
+        ctx.font = `${7 * zoom}px 'Courier New'`;
+        ctx.fillText("ONLINE", glitchOff * 0.5, -h * 0.6 + 14 * zoom);
+
+        ctx.shadowBlur = 0;
+        ctx.restore();
+      }
+
+      function drawRain() {
+        if (!rainOn) return;
+        while (raindrops.length < 300) {
+          raindrops.push({
+            x: Math.random() * W,
+            y: Math.random() * H,
+            speed: 6 + Math.random() * 4,
+            len: 8 + Math.random() * 12,
+            alpha: 0.1 + Math.random() * 0.2,
+          });
+        }
+
+        ctx.lineWidth = 0.5;
+        for (const r of raindrops) {
+          ctx.strokeStyle = `rgba(100,200,255,${r.alpha * 0.75})`;
+          ctx.globalAlpha = r.alpha;
+          ctx.beginPath();
+          ctx.moveTo(r.x, r.y);
+          ctx.lineTo(r.x - r.len * 0.2, r.y + r.len);
+          ctx.stroke();
+          r.x -= r.speed * 0.2;
+          r.y += r.speed;
+          if (r.y > H) {
+            r.y = -20;
+            r.x = Math.random() * W;
+            // BUG FIX: spawn splash particle
+            if (Math.random() < 0.1) {
+              particles.push({
+                x: r.x,
+                y: H - Math.random() * 20,
+                vx: (Math.random() - 0.5) * 2,
+                vy: -Math.random() * 2,
+                life: 1,
+                decay: 0.03 + Math.random() * 0.03,
+                color: "rgba(100,200,255,",
+                size: 1,
+              });
+            }
+          }
+        }
+        ctx.globalAlpha = 1;
+
+        // Fog layer when raining
+        const fogAlpha = 0.03 + 0.02 * Math.sin(animT * 0.5);
+        const fogGrad = ctx.createLinearGradient(0, H * 0.5, 0, H);
+        fogGrad.addColorStop(0, "transparent");
+        fogGrad.addColorStop(1, `rgba(80,120,160,${fogAlpha})`);
+        ctx.fillStyle = fogGrad;
+        ctx.fillRect(0, 0, W, H);
+      }
+
+      // ===== LIGHTNING (NEW) =====
+      function drawLightning() {
+        if (!thunderOn || !rainOn) return;
+
+        // Spawn lightning randomly
+        if (Math.random() < 0.005) {
+          const lx = Math.random() * W;
+          lightning.push({
+            x: lx,
+            y: 0,
+            branches: generateLightningBranch(lx, 0, H * 0.7, 8),
+            life: 1,
+            decay: 0.04,
+          });
+        }
+
+        for (let i = lightning.length - 1; i >= 0; i--) {
+          const l = lightning[i];
+          l.life -= l.decay;
+          if (l.life <= 0) {
+            lightning.splice(i, 1);
+            continue;
+          }
+
+          // Flash effect
+          if (l.life > 0.8) {
+            ctx.fillStyle = `rgba(200,220,255,${(l.life - 0.8) * 0.5})`;
+            ctx.fillRect(0, 0, W, H);
+          }
+
+          ctx.strokeStyle = `rgba(200,220,255,${l.life})`;
+          ctx.lineWidth = 2 * l.life;
+          ctx.shadowColor = "#aaf";
+          ctx.shadowBlur = 20 * l.life;
+
+          drawBranch(l.branches, l.life);
+          ctx.shadowBlur = 0;
+        }
+      }
+
+      function generateLightningBranch(x, y, targetY, depth) {
+        if (depth <= 0) return [];
+        const points = [{ x, y }];
+        let cx = x,
+          cy = y;
+        const steps = 5 + Math.floor(Math.random() * 8);
+        const stepY = (targetY - y) / steps;
+
+        for (let i = 0; i < steps; i++) {
+          cx += (Math.random() - 0.5) * 60;
+          cy += stepY + Math.random() * 10;
+          points.push({ x: cx, y: cy });
+
+          // Branching
+          if (Math.random() < 0.3 && depth > 3) {
+            points[points.length - 1].branch = generateLightningBranch(
+              cx,
+              cy,
+              cy + stepY * 3,
+              depth - 3,
+            );
+          }
+        }
+        return points;
+      }
+
+      function drawBranch(points, alpha) {
+        if (points.length < 2) return;
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+          ctx.lineTo(points[i].x, points[i].y);
+          if (points[i].branch) {
+            const prevWidth = ctx.lineWidth;
+            ctx.stroke();
+            ctx.lineWidth = prevWidth * 0.5;
+            drawBranch(points[i].branch, alpha * 0.6);
+            ctx.lineWidth = prevWidth;
+            ctx.beginPath();
+            ctx.moveTo(points[i].x, points[i].y);
+          }
+        }
+        ctx.stroke();
+      }
+
+      // ===== PARTICLES =====
+      function drawParticles() {
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.05;
+          p.life -= p.decay;
+          if (p.life <= 0) {
+            particles.splice(i, 1);
+            continue;
+          }
+          ctx.fillStyle = p.color + p.life * 0.5 + ")";
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Floating embers / dust particles (ambient)
+        if (isNight) {
+          for (let i = 0; i < 30; i++) {
+            const px =
+              (seed * 13.7 + i * 237.5 + animT * 20 * ((i % 3) + 1)) % W;
+            const py = (seed * 7.1 + i * 147.3 + animT * 8 * ((i % 2) + 1)) % H;
+            const pa = 0.1 + 0.1 * Math.sin(animT + i);
+            ctx.fillStyle = `rgba(255,${150 + (i % 100)},${50 + (i % 50)},${pa})`;
+            ctx.beginPath();
+            ctx.arc(px, py, 0.8 + (i % 3) * 0.3, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+
+      // ===== CURSOR LIGHT (NEW) =====
+      function drawCursorLight() {
+        if (!isNight) return;
+        const radius = 120;
+        const grd = ctx.createRadialGradient(
+          mouseX,
+          mouseY,
+          0,
+          mouseX,
+          mouseY,
+          radius,
+        );
+        grd.addColorStop(0, "rgba(0,255,255,0.04)");
+        grd.addColorStop(0.5, "rgba(0,255,255,0.015)");
+        grd.addColorStop(1, "transparent");
+        ctx.fillStyle = grd;
+        ctx.beginPath();
+        ctx.arc(mouseX, mouseY, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function drawBackground() {
+        if (isNight) {
+          const grad = ctx.createLinearGradient(0, 0, 0, H);
+          grad.addColorStop(0, "#000308");
+          grad.addColorStop(1, "#08020f");
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, W, H);
+
+          // stars (fixed positions based on seed)
+          for (let i = 0; i < 120; i++) {
+            const sx = (seed * 7.3 + i * 137.5) % W;
+            const sy = (seed * 3.1 + i * 97.3) % (H * 0.45);
+            const ss = 0.5 + (i % 3) * 0.3;
+            // Twinkle effect
+            const twinkle =
+              0.3 + 0.7 * Math.abs(Math.sin(animT * 0.5 + i * 1.7));
+            ctx.fillStyle = `rgba(255,255,255,${0.5 * twinkle})`;
+            ctx.beginPath();
+            ctx.arc(sx, sy, ss, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // moon glow
+          const mgx = ((seed * 11.7) % (W * 0.8)) + W * 0.1;
+          const mgy = ((seed * 5.3) % (H * 0.2)) + 20;
+          const mg = ctx.createRadialGradient(mgx, mgy, 0, mgx, mgy, 80);
+          mg.addColorStop(0, "rgba(180,160,255,0.15)");
+          mg.addColorStop(1, "transparent");
+          ctx.fillStyle = mg;
+          ctx.fillRect(0, 0, W, H);
+
+          // Moon disc (NEW)
+          ctx.fillStyle = "rgba(200,190,255,0.12)";
+          ctx.beginPath();
+          ctx.arc(mgx, mgy, 15, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Distant city glow on horizon (NEW)
+          const horizGlow = ctx.createLinearGradient(0, H * 0.4, 0, H * 0.55);
+          horizGlow.addColorStop(0, "transparent");
+          horizGlow.addColorStop(0.5, "rgba(180,0,255,0.03)");
+          horizGlow.addColorStop(1, "transparent");
+          ctx.fillStyle = horizGlow;
+          ctx.fillRect(0, 0, W, H);
+        } else {
+          const grad = ctx.createLinearGradient(0, 0, 0, H);
+          grad.addColorStop(0, "#0a0610");
+          grad.addColorStop(0.5, "#080510");
+          grad.addColorStop(1, "#050308");
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, W, H);
+        }
+      }
+
+      // ===== CHROMATIC ABERRATION (NEW post-processing) =====
+      function postProcess() {
+        if (!isNight) return;
+        // Vignette
+        const vignette = ctx.createRadialGradient(
+          W / 2,
+          H / 2,
+          H * 0.3,
+          W / 2,
+          H / 2,
+          H * 0.8,
+        );
+        vignette.addColorStop(0, "transparent");
+        vignette.addColorStop(1, "rgba(0,0,0,0.4)");
+        ctx.fillStyle = vignette;
+        ctx.fillRect(0, 0, W, H);
+      }
+
+      // ===== LOG =====
+      const logs = [];
+      function addLog(msg) {
+        logs.unshift("> " + msg);
+        if (logs.length > 5) logs.pop();
+        document.getElementById("log").innerHTML = logs
+          .map((l) => `<div>${l}</div>`)
+          .join("");
+      }
+
+      function updateStats() {
+        document.getElementById("bcount").textContent = buildings.length;
+        document.getElementById("vcount").textContent = vehicles.length;
+        document.getElementById("dcount").textContent = drones.length;
+      }
+
+      // ===== FPS COUNTER =====
+      let frameCount = 0,
+        lastFpsTime = 0,
+        currentFps = 0;
+
+      // ===== MAIN LOOP =====
+      function loop(ts) {
+        animT = ts * 0.001;
+
+        // FPS counter
+        frameCount++;
+        if (ts - lastFpsTime >= 1000) {
+          currentFps = frameCount;
+          frameCount = 0;
+          lastFpsTime = ts;
+          document.getElementById("fps").textContent = `FPS: ${currentFps}`;
+        }
+
+        drawBackground();
+        drawCursorLight();
+        drawGround();
+        for (const b of buildings) drawBuilding(b);
+        drawVehicles();
+        drawDrones();
+        drawHologram();
+        drawRain();
+        drawLightning();
+        drawParticles();
+        postProcess();
+
+        // Update vehicle count periodically
+        if (Math.floor(animT) % 3 === 0) updateStats();
+
+        requestAnimationFrame(loop);
+      }
+
+      // ===== CONTROLS =====
+      document.getElementById("btn-regen").addEventListener("click", () => {
+        camOffX = 0;
+        camOffY = 0;
+        generate();
+      });
+
+      document
+        .getElementById("btn-night")
+        .addEventListener("click", function () {
+          isNight = !isNight;
+          this.textContent = isNight ? "☀ DAY" : "◑ NIGHT";
+          this.classList.toggle("active", isNight);
+          document.getElementById("time-label").textContent =
+            "TIME: " + (isNight ? "NIGHT" : "DAY");
+          addLog(isNight ? "NIGHT MODE ENABLED" : "DAY MODE ENABLED");
+        });
+
+      document
+        .getElementById("btn-rain")
+        .addEventListener("click", function () {
+          rainOn = !rainOn;
+          this.textContent = rainOn ? "≋ CLEAR" : "≋ RAIN";
+          this.classList.toggle("active", rainOn);
+          if (!rainOn) {
+            raindrops = [];
+            particles = [];
+          }
+          addLog(rainOn ? "PRECIPITATION: ON" : "PRECIPITATION: OFF");
+        });
+
+      document
+        .getElementById("btn-zoom")
+        .addEventListener("click", function () {
+          zoom = zoom === 1 ? 1.4 : zoom === 1.4 ? 0.7 : 1;
+          addLog("ZOOM: " + zoom + "x");
+          generate();
+        });
+
+      document
+        .getElementById("btn-drone")
+        .addEventListener("click", function () {
+          // Toggle extra drones
+          if (drones.length <= 5) {
+            for (let i = 0; i < 15; i++) spawnDrone();
+            this.classList.add("active");
+            addLog("DRONE SWARM DEPLOYED: " + drones.length);
+          } else {
+            drones.splice(5);
+            this.classList.remove("active");
+            addLog("DRONE SWARM RECALLED");
+          }
+          updateStats();
+        });
+
+      document
+        .getElementById("btn-thunder")
+        .addEventListener("click", function () {
+          thunderOn = !thunderOn;
+          this.classList.toggle("active", thunderOn);
+          if (thunderOn && !rainOn) {
+            rainOn = true;
+            document.getElementById("btn-rain").textContent = "≋ CLEAR";
+            document.getElementById("btn-rain").classList.add("active");
+            addLog("PRECIPITATION: ON");
+          }
+          addLog(thunderOn ? "STORM PROTOCOL: ACTIVE" : "STORM PROTOCOL: OFF");
+        });
+
+      document
+        .getElementById("btn-neon")
+        .addEventListener("click", function () {
+          neonBoost = !neonBoost;
+          this.classList.toggle("active", neonBoost);
+          addLog(neonBoost ? "NEON OVERDRIVE: ON" : "NEON OVERDRIVE: OFF");
+        });
+
+      document
+        .getElementById("btn-traffic")
+        .addEventListener("click", function () {
+          trafficMode = !trafficMode;
+          this.classList.toggle("active", trafficMode);
+          if (trafficMode) {
+            for (let i = 0; i < 20; i++) spawnVehicle();
+          } else {
+            vehicles.splice(12);
+          }
+          addLog(trafficMode ? "TRAFFIC SURGE: ON" : "TRAFFIC SURGE: OFF");
+          updateStats();
+        });
+
+      // ===== KEYBOARD SHORTCUTS =====
+      document.addEventListener("keydown", (e) => {
+        switch (e.key.toLowerCase()) {
+          case "r":
+            document.getElementById("btn-regen").click();
+            break;
+          case "n":
+            document.getElementById("btn-night").click();
+            break;
+          case "p":
+            document.getElementById("btn-rain").click();
+            break;
+          case "d":
+            document.getElementById("btn-drone").click();
+            break;
+          case "t":
+            document.getElementById("btn-thunder").click();
+            break;
+          case " ":
+            e.preventDefault();
+            // Quick demo: enable night+rain+storm
+            if (!isNight) document.getElementById("btn-night").click();
+            if (!rainOn) document.getElementById("btn-rain").click();
+            if (!thunderOn) document.getElementById("btn-thunder").click();
+            addLog("FULL ATMOSPHERE MODE");
+            break;
+        }
+      });
+
+      // ===== INIT =====
+      generate();
+      requestAnimationFrame(loop);
+    </script>
+  </body>
+</html>

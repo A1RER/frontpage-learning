@@ -1,0 +1,3 @@
+[submodule "index"]
+	path = index
+	url = https://github.com/A1RER/particle_effects_web
